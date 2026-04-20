@@ -1,0 +1,54 @@
+{
+  "programConfig": {
+    "status": "Waitlist",
+    "signupLink": "https://forms.gle/example",
+    "nextSessionDate": "TBD"
+  },
+  "cohorts": [
+    {
+      "year": "2025–2026",
+      "speakers": [
+        { 
+          "name": "Hon. Sarah Johnson", 
+          "role": "District Court Judge", 
+          "topic": "The Judicial Path", 
+          "image": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=800",
+          "bio": "Judge Johnson has served on the District Court for over a decade, specializing in civil litigation and experimental judicial procedures. She is a graduate of Yale Law and a frequent lecturer on modern legal ethics."
+        },
+        { 
+          "name": "Robert Chen, Esq.", 
+          "role": "Partner at Latham & Watkins", 
+          "topic": "Corporate Law Trends", 
+          "image": "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=800",
+          "bio": "Robert Chen leads the M&A division at Latham & Watkins in Dallas. With over 20 years of experience in multi-billion dollar transactions, he provides invaluable insights into the life of Big Law partners."
+        },
+        { 
+          "name": "Maria Garcia", 
+          "role": "City Council Member", 
+          "topic": "Policy & Advocacy", 
+          "image": "https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80&w=800",
+          "bio": "Maria Garcia represents the advocacy arm of the local government, focusing on urban development and public housing legislation. She holds a JD from UT Austin and is a champion for community-led legal reform."
+        }
+      ]
+    },
+    {
+      "year": "2024–2025",
+      "speakers": [
+        { 
+          "name": "David Miller", 
+          "role": "Criminal Defense Attorney", 
+          "topic": "Litigation Strategy", 
+          "image": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=800",
+          "bio": "David is one of the region's most sought-after criminal defense specialists. His series on courtroom psychology has become a staple for JMPLS students looking to enter the world of litigation."
+        },
+        { 
+          "name": "Elena Rodriguez", 
+          "role": "General Counsel", 
+          "topic": "In-House Legal Life", 
+          "image": "https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=800",
+          "bio": "Elena oversees legal operations for a major fintech startup. She offers a unique perspective on the intersection of technology, finance, and the law."
+        }
+      ]
+    }
+  ]
+}
