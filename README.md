@@ -4,6 +4,8 @@
 
 Official website for the **John Marshall Pre-Law Society (JMPLS)** at the University of Texas at Dallas — a student organization dedicated to fostering excellence, advocacy, and community for aspiring legal professionals.
 
+Developed by the **Design Society Student Chapter at UT Dallas** for the John Marshall Pre-Law Society.
+
 ## About
 
 This site serves as the digital home for JMPLS, providing members and prospective students with:
