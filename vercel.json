@@ -1,0 +1,12 @@
+{
+  "git": {
+    "deploymentEnabled": {
+      "main": true
+    }
+  },
+  "buildCommand": "bun run build",
+  "outputDirectory": "dist",
+  "installCommand": "bun install",
+  "devCommand": "bun run dev",
+  "framework": "vite"
+}

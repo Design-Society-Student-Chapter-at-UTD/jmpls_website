@@ -35,6 +35,7 @@ interface AppUser {
   role: string | null;
   image: string | null;
   createdAt: string;
+  isAdmin?: boolean;
 }
 
 interface Stats {
@@ -1152,7 +1153,13 @@ function MembersTab() {
                   <tr key={u.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4"><span className="font-medium text-gray-900">{u.name}</span></td>
                     <td className="px-6 py-4 text-xs text-gray-500">{u.email}</td>
-                    <td className="px-6 py-4"><span className="text-xs capitalize text-gray-600">{u.role || "member"}</span></td>
+                    <td className="px-6 py-4">
+                      {u.isAdmin ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-maroon/10 text-maroon text-[0.55rem] font-bold uppercase tracking-widest rounded-sm">Admin</span>
+                      ) : (
+                        <span className="text-xs capitalize text-gray-600">{u.role || "member"}</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 text-xs text-gray-500 whitespace-nowrap">{new Date(u.createdAt).toLocaleDateString()}</td>
                   </tr>
                 ))}
