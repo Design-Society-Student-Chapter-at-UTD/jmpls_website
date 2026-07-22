@@ -1,0 +1,10 @@
+{
+  "$schema": "Admin access configuration for JMPLS site",
+  "description": "Users with the following email addresses will have access to the admin panel in the dashboard. Add or remove emails as needed.",
+
+  "admins": [
+    "jmplsutd@gmail.com",
+        "tma230002@utdallas.edu"
+        
+  ]
+}

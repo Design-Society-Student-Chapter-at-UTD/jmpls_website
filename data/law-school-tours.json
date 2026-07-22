@@ -1,0 +1,50 @@
+{
+  "tours": [
+    {
+      "year": "2025–2026",
+      "schools": [
+        {
+          "name": "The University of Texas School of Law",
+          "location": "Austin, TX",
+          "date": "March 15, 2026",
+          "status": "Upcoming",
+          "image": "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&q=80&w=800",
+          "description": "Visit the flagship law school of Texas. Includes a tour of the Tarlton Law Library and a Q&A with the admissions dean.",
+          "signupLink": "https://forms.gle/example"
+        },
+        {
+          "name": "SMU Dedman School of Law",
+          "location": "Dallas, TX",
+          "date": "February 10, 2026",
+          "status": "Upcoming",
+          "image": "https://images.unsplash.com/photo-1597670964482-c6050c616e5c?auto=format&fit=crop&q=80&w=800",
+          "description": "Explore SMU's historic campus and learn about their unique legal clinics and business law programs.",
+          "signupLink": "https://forms.gle/example"
+        }
+      ]
+    },
+    {
+      "year": "2024–2025",
+      "schools": [
+        {
+          "name": "Baylor Law School",
+          "location": "Waco, TX",
+          "date": "November 5, 2024",
+          "status": "Completed",
+          "image": "https://images.unsplash.com/photo-1592280771190-3e2e4d571952?auto=format&fit=crop&q=80&w=800",
+          "description": "Known for its rigorous trial advocacy program, our visit to Baylor provided students with a look at their practice court system.",
+          "signupLink": "#"
+        },
+        {
+          "name": "Texas A&M University School of Law",
+          "location": "Fort Worth, TX",
+          "date": "October 12, 2024",
+          "status": "Completed",
+          "image": "https://images.unsplash.com/photo-1517457373958-b7bdd4587205?auto=format&fit=crop&q=80&w=800",
+          "description": "A deep dive into Aggie Law's rapidly rising intellectual property and environmental law programs.",
+          "signupLink": "#"
+        }
+      ]
+    }
+  ]
+}

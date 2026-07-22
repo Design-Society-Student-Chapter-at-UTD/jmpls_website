@@ -1,0 +1,123 @@
+{
+  "documentTitle": "Constitution of the John Marshall Pre-Law Society",
+  "lastAmended": "August 2025",
+  "preamble": "We, the members of the John Marshall Pre-Law Society (JMPLS) at the University of Texas at Dallas, establish this Constitution to promote academic excellence, professional development, and community engagement among students pursuing careers in the legal profession.",
+  "articles": [
+    {
+      "number": 1,
+      "title": "Name and Purpose",
+      "sections": [
+        {
+          "heading": "Section 1: Name",
+          "content": "The name of this organization shall be the John Marshall Pre-Law Society, hereafter referred to as JMPLS."
+        },
+        {
+          "heading": "Section 2: Purpose",
+          "content": "The purpose of JMPLS is to provide students with resources, mentorship, and networking opportunities to succeed in their journey toward law school and legal careers. The society shall serve as a bridge between undergraduate studies and the legal profession through educational programming, professional development, and community service."
+        },
+        {
+          "heading": "Section 3: Non-Discrimination Policy",
+          "content": "JMPLS shall not discriminate on the basis of race, color, religion, sex, sexual orientation, gender identity, national origin, disability, age, or veteran status. Membership is open to all currently enrolled students of the University of Texas at Dallas who share an interest in the legal profession."
+        }
+      ]
+    },
+    {
+      "number": 2,
+      "title": "Membership",
+      "sections": [
+        {
+          "heading": "Section 1: Eligibility",
+          "content": "Any currently enrolled student at the University of Texas at Dallas is eligible for membership upon payment of dues and registration through the official membership portal."
+        },
+        {
+          "heading": "Section 2: Rights and Privileges",
+          "content": "Active members in good standing shall have the right to attend all general body meetings, participate in society events, access member-only resources, and hold a vote in society elections."
+        },
+        {
+          "heading": "Section 3: Dues",
+          "content": "Membership dues shall be determined annually by the Executive Board. Dues are non-refundable and must be paid in full to maintain active membership status."
+        }
+      ]
+    },
+    {
+      "number": 3,
+      "title": "Executive Board",
+      "sections": [
+        {
+          "heading": "Section 1: Composition",
+          "content": "The Executive Board shall consist of the following officers: President, Vice President, Secretary, Treasurer, Marketing Director, and Operational Affairs Chair."
+        },
+        {
+          "heading": "Section 2: Duties of the President",
+          "content": "The President shall preside over all meetings, serve as the primary representative of JMPLS to the university and external organizations, oversee the activities of all officers, and set the strategic direction of the society."
+        },
+        {
+          "heading": "Section 3: Duties of the Vice President",
+          "content": "The Vice President shall assist the President in their duties, coordinate event planning, oversee committee operations, and assume the role of President in their absence."
+        },
+        {
+          "heading": "Section 4: Duties of the Secretary",
+          "content": "The Secretary shall maintain accurate records of all meetings, manage official correspondence, track membership attendance, and preserve the society's documents and archives."
+        },
+        {
+          "heading": "Section 5: Duties of the Treasurer",
+          "content": "The Treasurer shall manage all financial affairs of the society, collect dues, prepare budgets, maintain financial records, and submit required financial reports to the university."
+        },
+        {
+          "heading": "Section 6: Term Limits",
+          "content": "All Executive Board officers shall serve a term of one academic year. Officers may be re-elected for a maximum of two consecutive terms in the same position."
+        }
+      ]
+    },
+    {
+      "number": 4,
+      "title": "Elections",
+      "sections": [
+        {
+          "heading": "Section 1: Election Timeline",
+          "content": "Elections for the upcoming academic year shall be held during the spring semester, no later than April 30th. The election timeline shall be announced at least two weeks in advance."
+        },
+        {
+          "heading": "Section 2: Voting Procedure",
+          "content": "All active members in good standing are eligible to vote. Voting shall be conducted through a secure electronic ballot. Each member shall cast one vote per position. A simple majority of votes cast is required for election."
+        },
+        {
+          "heading": "Section 3: Vacancies",
+          "content": "In the event of a vacancy in an Executive Board position, the remaining officers shall appoint an interim replacement within two weeks. A special election shall be held within thirty days if the vacancy occurs before the spring semester."
+        }
+      ]
+    },
+    {
+      "number": 5,
+      "title": "Meetings",
+      "sections": [
+        {
+          "heading": "Section 1: General Body Meetings",
+          "content": "General body meetings shall be held at least twice per month during the academic year. Meetings shall be announced to members at least one week in advance."
+        },
+        {
+          "heading": "Section 2: Executive Board Meetings",
+          "content": "The Executive Board shall meet weekly during the academic year to plan activities and address society business. Special meetings may be called by the President as needed."
+        },
+        {
+          "heading": "Section 3: Quorum",
+          "content": "A quorum for general body meetings shall consist of at least ten active members. A quorum for Executive Board meetings shall consist of a majority of officers."
+        }
+      ]
+    },
+    {
+      "number": 6,
+      "title": "Amendments",
+      "sections": [
+        {
+          "heading": "Section 1: Proposal",
+          "content": "Amendments to this Constitution may be proposed by any active member in good standing. Proposed amendments must be submitted in writing to the Executive Board at least two weeks before a vote."
+        },
+        {
+          "heading": "Section 2: Ratification",
+          "content": "Amendments shall be ratified by a two-thirds majority vote of active members present at a general body meeting, provided that notice of the proposed amendment has been given to all members at least one week in advance."
+        }
+      ]
+    }
+  ]
+}

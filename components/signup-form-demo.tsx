@@ -4,10 +4,11 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import {
-  IconBrandGoogle,
+  IconBrandWindows,
 } from "@tabler/icons-react";
 import { toast } from "sonner";
-import { registerUser, loginUser } from "@/src/lib/auth-service";
+import { registerUser, loginUser } from "@/lib/auth-service";
+import { authClient } from "@/src/lib/auth-client";
 
 export default function AuthForm({ initialMode = "signup" }: { initialMode?: "login" | "signup" }) {
   const [mode, setMode] = React.useState<"login" | "signup">(initialMode);
@@ -87,13 +88,14 @@ export default function AuthForm({ initialMode = "signup" }: { initialMode?: "lo
 
         <div className="flex flex-col space-y-3">
           <button
+            onClick={() => authClient.signIn.social({ provider: "microsoft" })}
             className="group/btn shadow-sm relative flex h-10 w-full items-center justify-start space-x-3 rounded-sm bg-gray-50 border border-gray-200 px-4 font-bold text-black dark:bg-zinc-900"
             type="button"
             disabled={isLoading}
           >
-            <IconBrandGoogle className="h-4 w-4 text-neutral-800" />
+            <IconBrandWindows className="h-4 w-4 text-neutral-800" />
             <span className="text-[0.65rem] text-neutral-700 uppercase tracking-widest">
-               {mode === "signup" ? "Sign up" : "Sign in"} with Google
+               {mode === "signup" ? "Sign up" : "Sign in"} with Microsoft
             </span>
           </button>
         </div>

@@ -1,0 +1,50 @@
+[
+  {
+    "id": "gallery-1",
+    "title": "Fall 2025 Kickoff Mixer",
+    "description": "Members networking at our first general body meeting of the year.",
+    "image": "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80&w=1200",
+    "category": "Events",
+    "date": "September 2025"
+  },
+  {
+    "id": "gallery-2",
+    "title": "UT Law School Tour",
+    "description": "Exploring the University of Texas School of Law campus and facilities.",
+    "image": "https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&q=80&w=1200",
+    "category": "Tours",
+    "date": "October 2025"
+  },
+  {
+    "id": "gallery-3",
+    "title": "Beyond the Bar – Judge Sarah Johnson",
+    "description": "An inspiring evening with Judge Johnson discussing the judicial path.",
+    "image": "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=1200",
+    "category": "Speakers",
+    "date": "November 2025"
+  },
+  {
+    "id": "gallery-4",
+    "title": "LSAT Strategy Workshop",
+    "description": "Intensive preparation session with top-scoring alumni.",
+    "image": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&q=80&w=1200",
+    "category": "Events",
+    "date": "October 2025"
+  },
+  {
+    "id": "gallery-5",
+    "title": "SMU Dedman Law Tour",
+    "description": "Visiting SMU's historic law campus in Dallas.",
+    "image": "https://images.unsplash.com/photo-1597670964482-c6050c616e5c?auto=format&fit=crop&q=80&w=1200",
+    "category": "Tours",
+    "date": "February 2026"
+  },
+  {
+    "id": "gallery-6",
+    "title": "Executive Board Retreat",
+    "description": "Planning the semester ahead with our dedicated leadership team.",
+    "image": "https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&q=80&w=1200",
+    "category": "Events",
+    "date": "August 2025"
+  }
+]

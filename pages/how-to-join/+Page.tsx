@@ -1,4 +1,5 @@
 import React from "react";
+import config from "../../data/site-config.json";
 
 export default function Page() {
   const [copiedText, setCopiedText] = React.useState<string | null>(null);
@@ -8,6 +9,8 @@ export default function Page() {
     setCopiedText(text);
     setTimeout(() => setCopiedText(null), 2000);
   };
+
+  const { organization, forms } = config;
 
   return (
     <div className="bg-white min-h-screen">
@@ -88,36 +91,48 @@ export default function Page() {
                 <div className="bg-gray-50 border border-gray-200 p-8 rounded-sm">
                   <h3 className="text-xl font-sans font-bold text-gray-900 mb-2">Submit Yearly Dues</h3>
                   <p className="text-gray-600 text-base mb-8 max-w-2xl leading-relaxed">
-                    Membership dues are <span className="font-bold text-maroon">$20.00</span> for the 2025-2026 academic year. Dues support our tours, workshops, and social events.
+                  Membership dues are <span className="font-bold text-maroon">${organization.membershipDues}.00</span> for the {organization.membershipDuesLabel} academic year. Dues support our tours, workshops, and social events.
+                  <br />
+                  <a href={forms.membershipRegistration} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 mt-4 px-5 py-2 bg-white border border-maroon text-maroon font-bold tracking-wider uppercase text-xs rounded-sm hover:bg-maroon hover:text-white transition-all">
+                    Fill Out Microsoft Form
+                  </a>
                   </p>
                   
                   <div className="flex flex-wrap gap-4 mb-8">
                     <button 
-                      onClick={() => copyToClipboard("jmplsutd@gmail.com")}
+                      onClick={() => copyToClipboard(organization.zelle)}
                       className="group relative px-6 py-4 bg-white border border-gray-200 rounded-sm shadow-sm min-w-[220px] text-left hover:border-maroon transition-all active:scale-[0.98]"
                     >
                       <div className="text-[0.65rem] font-bold uppercase tracking-widest text-maroon mb-1">Zelle</div>
-                      <div className="text-gray-900 font-bold font-mono">jmplsutd@gmail.com</div>
-                      <div className={`absolute top-2 right-2 text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-sm transition-all ${copiedText === "jmplsutd@gmail.com" ? "bg-green-100 text-green-700 opacity-100" : "bg-gray-100 text-gray-400 opacity-0 group-hover:opacity-100"}`}>
-                        {copiedText === "jmplsutd@gmail.com" ? "Copied" : "Click to Copy"}
+                      <div className="text-gray-900 font-bold font-mono">{organization.zelle}</div>
+                      <div className={`absolute top-2 right-2 text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-sm transition-all ${copiedText === organization.zelle ? "bg-green-100 text-green-700 opacity-100" : "bg-gray-100 text-gray-400 opacity-0 group-hover:opacity-100"}`}>
+                        {copiedText === organization.zelle ? "Copied" : "Click to Copy"}
                       </div>
                     </button>
 
                     <button 
-                      onClick={() => copyToClipboard("$UTDJMPLS")}
+                      onClick={() => copyToClipboard(organization.cashapp)}
                       className="group relative px-6 py-4 bg-white border border-gray-200 rounded-sm shadow-sm min-w-[220px] text-left hover:border-maroon transition-all active:scale-[0.98]"
                     >
                       <div className="text-[0.65rem] font-bold uppercase tracking-widest text-green-700 mb-1">CashApp</div>
-                      <div className="text-gray-900 font-bold font-mono">$UTDJMPLS</div>
-                      <div className={`absolute top-2 right-2 text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-sm transition-all ${copiedText === "$UTDJMPLS" ? "bg-green-100 text-green-700 opacity-100" : "bg-gray-100 text-gray-400 opacity-0 group-hover:opacity-100"}`}>
-                        {copiedText === "$UTDJMPLS" ? "Copied" : "Click to Copy"}
+                      <div className="text-gray-900 font-bold font-mono">{organization.cashapp}</div>
+                      <div className={`absolute top-2 right-2 text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-sm transition-all ${copiedText === organization.cashapp ? "bg-green-100 text-green-700 opacity-100" : "bg-gray-100 text-gray-400 opacity-0 group-hover:opacity-100"}`}>
+                        {copiedText === organization.cashapp ? "Copied" : "Click to Copy"}
                       </div>
                     </button>
                   </div>
 
                   <div className="pt-8 border-t border-gray-200">
                     <button 
-                      onClick={() => window.open('https://buy.stripe.com/demo_link', '_blank')}
+                      onClick={() => {
+                        const priceId = config.stripe.priceIds.membership;
+                        if (priceId && !priceId.startsWith("price_your")) {
+                          window.open(`https://buy.stripe.com/${priceId}`, '_blank');
+                        } else {
+                          // Fallback: open the membership form
+                          window.open(forms.membershipRegistration, '_blank');
+                        }
+                      }}
                       className="w-full sm:w-auto px-10 py-4 bg-maroon text-white font-bold tracking-widest uppercase text-xs rounded-sm shadow-md hover:bg-maroon-dark transition-all flex items-center justify-center gap-3"
                     >
                       Pay Securely with Stripe

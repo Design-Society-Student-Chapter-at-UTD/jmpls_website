@@ -1,0 +1,32 @@
+[
+  {
+    "id": "merch-1",
+    "name": "JMPLS Classic Hoodie",
+    "description": "High-quality, comfortable hoodie featuring the JMPLS logo.",
+    "price": 35.00,
+    "quantity": 50,
+    "image": "https://images.unsplash.com/photo-1556821840-3a63f95609a7?auto=format&fit=crop&q=80&w=800",
+    "category": "Apparel",
+    "details": "80% cotton, 20% polyester. Available in sizes S-XXL. Embroidered logo for durability."
+  },
+  {
+    "id": "merch-2",
+    "name": "Professional Padfolio",
+    "description": "Sleek leather padfolio perfect for interviews and networking events.",
+    "price": 25.00,
+    "quantity": 30,
+    "image": "https://images.unsplash.com/photo-1544816155-12df9643f363?auto=format&fit=crop&q=80&w=800",
+    "category": "Accessories",
+    "details": "Includes a legal-size notepad, pen holder, and pockets for business cards and resumes."
+  },
+  {
+    "id": "merch-3",
+    "name": "JMPLS Coffee Mug",
+    "description": "Start your LSAT study sessions with our signature mug.",
+    "price": 15.00,
+    "quantity": 100,
+    "image": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&q=80&w=800",
+    "category": "Home",
+    "details": "Ceramic, 11oz. Microwave and dishwasher safe."
+  }
+]

@@ -1,7 +1,12 @@
-import React from "react";
-import { FileText, ChevronRight, ChevronLeft, ArrowRight } from "lucide-react";
+import React, { useState } from "react";
+import { FileText, ChevronRight, ChevronLeft, ArrowRight, Calendar, MapPin, ExternalLink } from "lucide-react";
+import eventHistory from "../../data/event-history.json";
+import { Drawer } from "../../components/ui/drawer";
 
 export default function Page() {
+  const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const closeDrawer = () => setSelectedEvent(null);
+
   return (
     <div className="pb-24 bg-gray-50 min-h-screen">
       <section className="bg-maroon text-white py-24 px-8 text-center border-b-4 border-gold">
@@ -39,7 +44,7 @@ export default function Page() {
                 <div className="w-2 h-8 bg-maroon rounded-full"></div>
                 <h2 className="text-3xl font-serif font-bold text-gray-900">Past Events Archive</h2>
               </div>
-              <p className="text-gray-500">A look back at our community and advocacy milestones.</p>
+              <p className="text-gray-500">A look back at our community and advocacy milestones. Click on an event to see more.</p>
             </div>
             <a 
               href="/beyond-the-bar" 
@@ -50,81 +55,87 @@ export default function Page() {
             </a>
           </div>
           
-          <PastEventsCarousel />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {eventHistory.map((event, idx) => (
+              <div 
+                key={idx}
+                onClick={() => setSelectedEvent(event)}
+                className="group bg-white border border-gray-200 rounded-sm overflow-hidden hover:border-maroon/20 hover:shadow-2xl transition-all duration-500 cursor-pointer flex flex-col"
+              >
+                <div className="relative h-64 overflow-hidden bg-gray-100">
+                  <img 
+                    src={event.image} 
+                    alt={event.title} 
+                    className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                  <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm px-3 py-1 text-[0.6rem] font-bold uppercase tracking-widest text-maroon rounded-full shadow-sm">
+                    {event.date}
+                  </div>
+                </div>
+                <div className="p-8 flex-1 flex flex-col">
+                  <h3 className="text-2xl font-serif font-bold text-gray-900 group-hover:text-maroon transition-colors mb-4">{event.title}</h3>
+                  <p className="text-gray-600 font-light text-sm line-clamp-3 mb-6 italic">"{event.description}"</p>
+                  <div className="mt-auto pt-6 border-t border-gray-100 flex justify-between items-center text-maroon text-[0.65rem] font-bold uppercase tracking-widest">
+                    View Details
+                    <ArrowRight className="size-3.5 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
 
       </section>
-    </div>
-  );
-}
 
-function PastEventsCarousel() {
-  const [currentIndex, setCurrentIndex] = React.useState(0);
-  const events = [
-    { title: "The 2024 Law Gala", date: "Nov 2024", image: "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80&w=1200", desc: "Our annual formal networking event hosted at the Davidson-Gundy Center." },
-    { title: "Moot Court Competition", date: "Oct 2024", image: "https://images.unsplash.com/photo-1589829545856-d10d557cf95f?auto=format&fit=crop&q=80&w=1200", desc: "Student advocates competing in high-stakes appellate oral arguments." },
-    { title: "LSAT Intensive Camp", date: "Aug 2024", image: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&q=80&w=1200", desc: "A rigorous 3-day deep dive into logic games and reading comprehension." }
-  ];
+      {/* Event Details Drawer */}
+      <Drawer isOpen={!!selectedEvent} onClose={closeDrawer}>
+        {selectedEvent && (
+          <div className="max-w-4xl mx-auto px-8 py-12">
+            <div className="flex flex-col md:flex-row gap-12 items-start">
+              <div className="w-full md:w-1/2 aspect-video rounded-sm overflow-hidden shadow-xl">
+                <img 
+                  src={selectedEvent.image} 
+                  alt={selectedEvent.title} 
+                  className="w-full h-full object-cover" 
+                />
+              </div>
+              
+              <div className="flex-1 space-y-6">
+                <div>
+                  <div className="flex items-center gap-2 text-maroon font-bold uppercase tracking-widest text-xs mb-2">
+                    <Calendar className="size-3.5" />
+                    {selectedEvent.date}
+                  </div>
+                  <h3 className="font-serif text-4xl font-bold text-gray-900 mb-4">{selectedEvent.title}</h3>
+                  <p className="text-gray-700 text-lg leading-relaxed font-light border-l-4 border-gold pl-6 italic">
+                    {selectedEvent.longDescription}
+                  </p>
+                </div>
 
-  const nextSlide = React.useCallback(() => {
-    setCurrentIndex((prev) => (prev + 1) % events.length);
-  }, [events.length]);
-
-  const prevSlide = React.useCallback(() => {
-    setCurrentIndex((prev) => (prev - 1 + events.length) % events.length);
-  }, [events.length]);
-
-  React.useEffect(() => {
-    const timer = setInterval(nextSlide, 7000);
-    return () => clearInterval(timer);
-  }, [nextSlide]);
-
-  return (
-    <div className="relative group overflow-hidden rounded-sm bg-black aspect-[3/4] md:aspect-[21/9] shadow-2xl">
-      {events.map((evt, idx) => (
-        <div 
-          key={idx} 
-          className={`absolute inset-0 transition-all duration-1000 ease-in-out ${idx === currentIndex ? 'opacity-100 scale-100' : 'opacity-0 scale-110'}`}
-        >
-          <img src={evt.image} alt={evt.title} className="w-full h-full object-cover brightness-50" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-transparent flex flex-col justify-end p-6 md:p-16">
-            <div className="text-gold font-bold uppercase tracking-widest text-[0.6rem] mb-2">{evt.date}</div>
-            <h3 className="text-white text-3xl md:text-5xl font-serif font-bold mb-4 leading-tight">{evt.title}</h3>
-            <p className="text-white/70 max-w-xl text-sm md:text-lg leading-relaxed italic">
-              "{evt.desc}"
-            </p>
+                {selectedEvent.hasLinks !== false && (
+                  <div className="space-y-4 pt-4 border-t border-gray-100">
+                    <h4 className="text-[0.7rem] font-bold uppercase tracking-widest text-gray-400">Resources & Links</h4>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {selectedEvent.links.map((link: any, i: number) => (
+                        <a 
+                          key={i}
+                          href={link.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center justify-between p-4 bg-gray-50 border border-gray-200 rounded-sm hover:border-maroon transition-colors group"
+                        >
+                          <span className="text-sm font-bold text-gray-700">{link.name}</span>
+                          <ExternalLink className="size-3.5 text-gray-400 group-hover:text-maroon transition-colors" />
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
-      ))}
-      
-      {/* Navigation Arrows */}
-      <div className="absolute inset-y-0 left-0 flex items-center px-4 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button 
-          onClick={prevSlide}
-          className="p-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all active:scale-95"
-        >
-          <ChevronLeft className="size-6" />
-        </button>
-      </div>
-      <div className="absolute inset-y-0 right-0 flex items-center px-4 opacity-0 group-hover:opacity-100 transition-opacity">
-        <button 
-          onClick={nextSlide}
-          className="p-2 rounded-full bg-white/10 backdrop-blur-md border border-white/20 text-white hover:bg-white/20 transition-all active:scale-95"
-        >
-          <ChevronRight className="size-6" />
-        </button>
-      </div>
-
-      {/* Slide Indicators */}
-      <div className="absolute bottom-6 left-6 md:bottom-8 md:left-1/2 md:-translate-x-1/2 flex gap-2">
-        {events.map((_, idx) => (
-          <button 
-            key={idx} 
-            onClick={() => setCurrentIndex(idx)}
-            className={`h-1 transition-all duration-500 rounded-full ${idx === currentIndex ? 'w-10 bg-gold' : 'w-3 bg-white/20'}`}
-          />
-        ))}
-      </div>
+        )}
+      </Drawer>
     </div>
   );
 }

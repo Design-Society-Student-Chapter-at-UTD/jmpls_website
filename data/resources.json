@@ -1,0 +1,20 @@
+[
+  {
+    "category": "LSAT Preparation",
+    "description": "Essential tools and guides to help you ace the Law School Admission Test.",
+    "links": [
+      { "title": "Official LSAC Practice Tests", "url": "https://www.lsac.org/lsat/prep", "description": "Free and paid practice tests directly from the test makers." },
+      { "title": "7Sage LSAT Analytics", "url": "https://7sage.com/free-lsat-preptest-scorer/", "description": "Free tool to track your progress and identify weaknesses." },
+      { "title": "Khan Academy LSAT Prep", "url": "https://www.khanacademy.org/prep/lsat", "description": "Comprehensive, free LSAT prep course." }
+    ]
+  },
+  {
+    "category": "Law School Admissions",
+    "description": "Guides and data to help you choose the right law school and perfect your application.",
+    "links": [
+      { "title": "LSAC Guide to Law Schools", "url": "https://www.lsac.org/choosing-law-school", "description": "Searchable database of ABA-approved law schools." },
+      { "title": "Spivey Consulting Blog", "url": "https://www.spiveyconsulting.com/blog/", "description": "Expert advice on law school admissions strategy." },
+      { "title": "Law School Transparency", "url": "https://www.lawschooltransparency.com/", "description": "Data on employment outcomes and costs." }
+    ]
+  }
+]

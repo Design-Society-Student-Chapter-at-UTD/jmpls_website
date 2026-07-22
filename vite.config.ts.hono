@@ -1,0 +1,25 @@
+import react from "@vitejs/plugin-react";
+import vike from "vike/plugin";
+import { defineConfig } from "vite";
+import tailwindcss from "@tailwindcss/vite";
+import devServer from "@hono/vite-dev-server";
+import path from "path";
+
+export default defineConfig({
+  plugins: [
+    devServer({
+      entry: "server/index.ts",
+      exclude: [/^(?!\/api)/],
+    }),
+    vike(),
+    react(),
+    tailwindcss(),
+  ],
+  resolve: {
+    alias: {
+      "@/lib": path.resolve(__dirname, "./src/lib"),
+      "@/components": path.resolve(__dirname, "./components"),
+      "@": path.resolve(__dirname, "./"),
+    },
+  },
+});

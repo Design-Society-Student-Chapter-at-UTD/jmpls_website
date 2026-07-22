@@ -1,38 +1,54 @@
 [
   {
-    "role": "President",
-    "name": "Jackson Logue",
-    "imageFileName": "Jackson_Logue.jpg",
-    "bio": "Hi everyone! I’m Jackson Logue, President of the John Marshall Pre-Law Society. I’m passionate about the law and exploring its many paths. Outside of school, I love traveling, and have studied abroad in Europe and Australia. I’m proud of everything we’ve accomplished as a board this year with JMPLS."
+    "year": "2025–2026",
+    "members": [
+      {
+        "role": "President",
+        "name": "Jackson Logue",
+        "imageFileName": "Jackson_Logue.jpg",
+        "bio": "Hi everyone! I’m Jackson Logue, President of the John Marshall Pre-Law Society. I’m passionate about the law and exploring its many paths. Outside of school, I love traveling, and have studied abroad in Europe and Australia. I’m proud of everything we’ve accomplished as a board this year with JMPLS."
+      },
+      {
+        "role": "Vice President",
+        "name": "Jasmine Kouhestani",
+        "imageFileName": "Jasmine.jpeg",
+        "bio": "Hi everyone! I’m Jasmine Kouhestani, Vice President of the John Marshall Pre-Law Society. Outside of school, I love reading and traveling, having visited Switzerland and heading to Australia this winter. I’m excited for an amazing year ahead with JMPLS."
+      },
+      {
+        "role": "Secretary",
+        "name": "Amrita Singh",
+        "imageFileName": "amrita.png",
+        "bio": "Hey everyone! I’m a junior majoring in Finance with a minor in Political Science, and I’m honored to be the Secretary for JMPLS this year! Some of my interests include writing, traveling, and watching Formula One!"
+      },
+      {
+        "role": "Treasurer",
+        "name": "Nathan Banh",
+        "imageFileName": "Nathan.jpg",
+        "bio": "Hi everyone! I’m a senior majoring in Global Business at UTD, and I’m thrilled to be serving as Treasurer for JMPLS this year. When I’m not busy with school or club activities, I enjoy trying new foods, writing, playing golf and basketball, and playing poker."
+      },
+      {
+        "role": "Marketing Director",
+        "name": "Jesus Carrillo",
+        "imageFileName": "Jesus.jpg",
+        "bio": "Hi everyone! I’m a junior Political Science major on the pre-law track. This year, I’ve loved managing our marketing, and I’m excited to make JMPLS even better! I plan to become an immigration attorney. I’m passionate about helping other families find the same opportunities. As a first-gen college student, I’m proud to be paving the way for my family!"
+      },
+      {
+        "role": "Operational Affairs",
+        "name": "Rohith Raman",
+        "imageFileName": "Rohith.jpg",
+        "bio": "Hi everyone. I’m Rohith Raman, and I’m the Operational Affairs Chair of the John Marshall Pre-Law Society. Outside of classes, I love listening to music and (much like Nathan,) playing golf! I’m looking forward to an eventful year with JMPLS!!"
+      }
+    ]
   },
   {
-    "role": "Vice President",
-    "name": "Jasmine Kouhestani",
-    "imageFileName": "Jasmine.jpeg",
-    "bio": "Hi everyone! I’m Jasmine Kouhestani, Vice President of the John Marshall Pre-Law Society. Outside of school, I love reading and traveling, having visited Switzerland and heading to Australia this winter. I’m excited for an amazing year ahead with JMPLS."
-  },
-  {
-    "role": "Secretary",
-    "name": "Amrita Singh",
-    "imageFileName": "amrita.png",
-    "bio": "Hey everyone! I’m a junior majoring in Finance with a minor in Political Science, and I’m honored to be the Secretary for JMPLS this year! Some of my interests include writing, traveling, and watching Formula One!"
-  },
-  {
-    "role": "Treasurer",
-    "name": "Nathan Banh",
-    "imageFileName": "Nathan.jpg",
-    "bio": "Hi everyone! I’m a senior majoring in Global Business at UTD, and I’m thrilled to be serving as Treasurer for JMPLS this year. When I’m not busy with school or club activities, I enjoy trying new foods, writing, playing golf and basketball, and playing poker."
-  },
-  {
-    "role": "Marketing Director",
-    "name": "Jesus Carrillo",
-    "imageFileName": "Jesus.jpg",
-    "bio": "Hi everyone! I’m a junior Political Science major on the pre-law track. This year, I’ve loved managing our marketing, and I’m excited to make JMPLS even better! I plan to become an immigration attorney. I’m passionate about helping other families find the same opportunities. As a first-gen college student, I’m proud to be paving the way for my family!"
-  },
-  {
-    "role": "Operational Affairs",
-    "name": "Rohith Raman",
-    "imageFileName": "Rohith.jpg",
-    "bio": "Hi everyone. I’m Rohith Raman, and I’m the Operational Affairs Chair of the John Marshall Pre-Law Society. Outside of classes, I love listening to music and (much like Nathan,) playing golf! I’m looking forward to an eventful year with JMPLS!!"
+    "year": "2024–2025",
+    "members": [
+      {
+        "role": "President Emeritus",
+        "name": "Previous Leader",
+        "imageFileName": "Jackson_Logue.jpg",
+        "bio": "A dedicated leader from the previous academic year."
+      }
+    ]
   }
 ]

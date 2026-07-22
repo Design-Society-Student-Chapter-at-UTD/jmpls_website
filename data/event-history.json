@@ -1,0 +1,48 @@
+[
+  {
+    "id": "event-1",
+    "title": "Fall 2025 Kickoff Mixer",
+    "date": "September 15, 2025",
+    "description": "Our first meeting of the year! Networking with new members and overview of the upcoming semester.",
+    "longDescription": "The Fall 2025 Kickoff Mixer was a huge success, bringing together over 100 aspiring legal professionals. We introduced the executive board, outlined our goals for the year, and enjoyed a night of networking and refreshments.",
+    "links": [
+      {
+        "name": "Event Photos",
+        "url": "#"
+      },
+      {
+        "name": "Presentation Slides",
+        "url": "#"
+      }
+    ],
+    "hasLinks": false,
+    "image": "https://images.unsplash.com/photo-1511795409834-ef04bbd61622?auto=format&fit=crop&q=80&w=800"
+  },
+  {
+    "id": "event-2",
+    "title": "LSAT Strategy Workshop",
+    "date": "October 10, 2025",
+    "description": "Intensive workshop on logical reasoning and reading comprehension strategies.",
+    "longDescription": "Led by top-scoring alumni, this workshop dove deep into the most challenging sections of the LSAT. Students participated in timed drills and received personalized feedback on their approach.",
+    "links": [
+      {
+        "name": "Workbook PDF",
+        "url": "#"
+      },
+      {
+        "name": "Strategy Guide",
+        "url": "#"
+      }
+    ],
+    "hasLinks": false,
+    "image": "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?auto=format&fit=crop&q=80&w=800"
+  },
+  {
+    "id": "event-1784690260208",
+    "title": "Test Event",
+    "date": "October 10, 2025",
+    "description": "This is a Test event",
+    "longDescription": "Led by top-scoring alumni, this workshop dove deep into the most challenging sections of the LSAT. Students participated in timed drills and received personalized feedback on their approach.",
+    "links": []
+  }
+]

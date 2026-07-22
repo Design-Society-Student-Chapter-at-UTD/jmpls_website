@@ -1,0 +1,44 @@
+{
+  "$schema": "Config schema for JMPLS site owners",
+  "description": "Edit this file to configure the site. All form URLs, payment settings, and org info are here.",
+
+  "organization": {
+    "name": "John Marshall Pre-Law Society",
+    "shortName": "JMPLS",
+    "email": "jmplsutd@gmail.com",
+    "university": "University of Texas at Dallas",
+    "universityShort": "UT Dallas",
+    "tagline": "Fostering excellence, advocacy, and community for aspiring legal professionals.",
+    "zelle": "jmplsutd@gmail.com",
+    "cashapp": "$UTDJMPLS",
+    "membershipDues": 20,
+    "membershipDuesLabel": "2025-2026"
+  },
+
+  "forms": {
+    "membershipRegistration": "https://forms.office.com/r/your-form-id",
+    "tourRegistration": "https://forms.office.com/r/your-form-id",
+    "speakerRegistration": "https://forms.office.com/r/your-form-id",
+    "beyondTheBarSignup": "https://forms.office.com/r/your-form-id"
+  },
+
+  "stripe": {
+    "publishableKey": "pk_live_your_publishable_key",
+    "priceIds": {
+      "membership": "price_your_membership_price_id",
+      "donation25": "price_your_price_id_25",
+      "donation50": "price_your_price_id_50"
+    }
+  },
+
+  "social": {
+    "linkedin": "https://www.linkedin.com/company/utdjmpls",
+    "instagram": "https://www.instagram.com/utdjmpls/",
+    "linktree": "https://linktr.ee/jmpls.utd"
+  },
+
+  "calendar": {
+    "googleCalendarSrc": "jmplsutd%40gmail.com",
+    "googleCalendarTimezone": "America%2FChicago"
+  }
+}

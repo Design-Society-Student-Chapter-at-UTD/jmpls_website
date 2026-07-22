@@ -3,6 +3,7 @@ import logoUrl from "../assets/logo.jpeg";
 import "./Layout.css";
 import { Spinner } from "../components/ui/spinner";
 import { Toaster } from "../components/ui/sonner";
+import { authClient } from "../src/lib/auth-client";
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -12,9 +13,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   useEffect(() => {
-    // Check for user on mount
-    import("../src/lib/auth-service").then(({ getCurrentUser }) => {
-      setUser(getCurrentUser());
+    // Fetch current session from Better Auth
+    authClient.getSession().then(({ data }) => {
+      if (data?.user) {
+        setUser({
+          email: data.user.email,
+          firstname: data.user.name?.split(" ")[0] || "Member",
+        });
+      }
     });
     
     const handleStart = () => setIsTransitioning(true);
@@ -35,8 +41,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }, []);
 
   const handleLogout = async () => {
-    const { logout } = await import("../src/lib/auth-service");
-    logout();
+    await authClient.signOut();
     setUser(null);
   };
 
@@ -51,10 +56,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   const navLinks = [
     { name: "About Us", href: "/about-us" },
+    { name: "Law School Tours", href: "/law-school-tours" },
+    { name: "Gallery", href: "/gallery" },
     { name: "Resources", href: "/resources" },
     { name: "Events", href: "/events" },
-    // { name: "Merchandise", href: "/merchandise" }
+    { name: "Merchandise", href: "/merchandise" },
   ];
+
+  const extraLinks: { name: string; href: string }[] = [];
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -91,7 +100,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           {/* Desktop Navigation Links & User Action */}
           <div className="hidden lg:flex items-center gap-10">
             <div className="flex gap-8 items-center text-sm font-medium tracking-wide text-gray-600">
-              {navLinks.map((link) => (
+              {[...navLinks, ...extraLinks].map((link) => (
                 <a key={link.name} href={link.href} className="hover:text-gold transition-colors relative group">
                   {link.name}
                   <span className="absolute -bottom-1 left-0 w-0 h-[2px] bg-gold transition-all duration-100 group-hover:w-full"></span>
@@ -110,13 +119,21 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   </a>
                 </>
               ) : (
-                <span 
-                  onDoubleClick={handleLogout}
-                  className="text-sm font-bold text-gray-900 cursor-pointer select-none py-1 hover:text-maroon transition-colors"
-                  title="Double-click to sign out"
-                >
-                  {user.firstname}
-                </span>
+                <div className="flex items-center gap-4">
+                  <a
+                    href="/dashboard"
+                    className="text-xs font-bold uppercase tracking-widest text-maroon hover:text-gold transition-colors"
+                  >
+                    Dashboard
+                  </a>
+                  <span 
+                    onDoubleClick={handleLogout}
+                    className="text-sm font-bold text-gray-900 cursor-pointer select-none py-1 hover:text-maroon transition-colors"
+                    title="Double-click to sign out"
+                  >
+                    {user.firstname}
+                  </span>
+                </div>
               )}
             </div>
           </div>
@@ -162,7 +179,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 Home
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
               </a>
-              {navLinks.map((link) => (
+              {[...navLinks, ...extraLinks].map((link) => (
                 <a 
                   key={link.name} 
                   href={link.href} 
@@ -195,21 +212,30 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                    Join Now
                  </a>
                </div>
-            ) : (
-                <div className="flex justify-between items-center w-full">
-                  <div className="flex flex-col">
-                    <span className="text-[0.6rem] font-bold uppercase tracking-[0.2em] text-maroon">Member</span>
-                    <span className="text-lg font-serif font-bold text-gray-900 leading-tight">{user.firstname}</span>
+           ) : (
+                <div className="flex flex-col gap-3">
+                  <div className="flex justify-between items-center w-full">
+                    <div className="flex flex-col">
+                      <span className="text-[0.6rem] font-bold uppercase tracking-[0.2em] text-maroon">Member</span>
+                      <span className="text-lg font-serif font-bold text-gray-900 leading-tight">{user.firstname}</span>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        handleLogout();
+                        setIsMenuOpen(false);
+                      }} 
+                      className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-maroon transition-colors"
+                    >
+                      Sign Out
+                    </button>
                   </div>
-                  <button 
-                    onClick={() => {
-                      handleLogout();
-                      setIsMenuOpen(false);
-                    }} 
-                    className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-maroon transition-colors"
+                  <a 
+                    href="/dashboard"
+                    onClick={() => setIsMenuOpen(false)}
+                    className="flex items-center justify-center w-full py-3 bg-maroon/5 border border-maroon/20 text-maroon font-bold tracking-wider uppercase text-xs rounded-sm hover:bg-maroon hover:text-white transition-all"
                   >
-                    Sign Out
-                  </button>
+                    Dashboard
+                  </a>
                 </div>
             )}
           </div>

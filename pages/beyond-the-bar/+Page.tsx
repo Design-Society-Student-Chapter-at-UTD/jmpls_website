@@ -2,9 +2,13 @@ import React from "react";
 import { Calendar, ArrowRight } from "lucide-react";
 import speakerData from "../../data/beyond-the-bar.json";
 import { Drawer } from "../../components/ui/drawer";
+import { Carousel } from "../../components/ui/carousel";
+import { YearSelect } from "../../components/ui/year-select";
+import config from "../../data/site-config.json";
 
 export default function Page() {
   const [selectedSpeaker, setSelectedSpeaker] = React.useState<any>(null);
+  const [selectedYear, setSelectedYear] = React.useState(speakerData.cohorts[0].year);
   const closeDrawer = () => setSelectedSpeaker(null);
 
   return (
@@ -70,7 +74,7 @@ export default function Page() {
 
              {speakerData.programConfig.status === 'Open' && (
                <a 
-                 href={speakerData.programConfig.signupLink}
+                 href={config.forms.beyondTheBarSignup}
                  target="_blank"
                  rel="noopener noreferrer"
                  className="flex items-center justify-center w-full py-4 bg-maroon text-white font-bold tracking-widest uppercase text-xs rounded-sm hover:bg-maroon/90 shadow-lg transition-all active:scale-95"
@@ -95,25 +99,33 @@ export default function Page() {
         </div>
       </section>
 
-      {/* Speakers Grid Mapper */}
-      <section className="max-w-7xl mx-auto px-6 md:px-12 py-24 space-y-24">
-        {speakerData.cohorts.map((cohort, cIdx) => (
-          <div key={cohort.year} className="space-y-12">
-            <div className="text-center md:text-left">
-              <h3 className="text-sm font-bold uppercase tracking-[0.4em] text-gray-400 mb-2">
-                {cIdx === 0 ? "Academic Year" : "Previous Cohort"}
-              </h3>
-              <h4 className={`text-4xl font-serif font-bold text-gray-900 leading-none ${cIdx > 0 ? 'opacity-60' : ''}`}>
-                {cohort.year} Speakers
-              </h4>
-            </div>
-            <div className={`grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 ${cIdx > 0 ? 'opacity-80' : ''}`}>
-              {cohort.speakers.map((s, idx) => (
-                <SpeakerCard key={idx} {...s} onClick={() => setSelectedSpeaker(s)} />
-              ))}
-            </div>
+      {/* Year Selection and Speakers Section */}
+      <section className="max-w-7xl mx-auto px-6 md:px-12 py-24 space-y-12">
+        <div className="flex flex-col md:flex-row justify-between items-end gap-6 border-b border-gray-200 pb-12">
+          <div className="text-left space-y-2">
+            <h3 className="text-sm font-bold uppercase tracking-[0.4em] text-gray-400">
+              Speaker Series
+            </h3>
+            <h4 className="text-5xl font-serif font-bold text-gray-900 leading-none">
+              {selectedYear} Cohort
+            </h4>
           </div>
-        ))}
+          <YearSelect 
+            years={speakerData.cohorts.map(c => c.year)} 
+            selectedYear={selectedYear} 
+            onYearChange={setSelectedYear} 
+          />
+        </div>
+
+        <div className="pt-8">
+          <Carousel itemsToShow={3}>
+            {speakerData.cohorts
+              .find(c => c.year === selectedYear)
+              ?.speakers.map((s, idx) => (
+                <SpeakerCard key={idx} {...s} onClick={() => setSelectedSpeaker(s)} />
+              )) || []}
+          </Carousel>
+        </div>
       </section>
 
       {/* Bottom CTA */}
