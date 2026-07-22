@@ -218,486 +218,95 @@ The webhook endpoint is `POST /api/stripe-webhook`.
 
 ### Overview
 
-The project is pre-configured for Vercel deployment. Here's how it works:
-
-#### Architecture (Vercel)
-
-When deployed to Vercel, requests are handled by two separate systems:
-
-| Request Path | Handler | Technology |
-|-------------|---------|------------|
-| `/**` (page routes) | Vercel serverless function | Built by `vite-plugin-vercel` + `@vite-plugin-vercel/vike` |
-| `/api/**` (API routes) | `api/index.ts` | Hono serverless function |
-| `/assets/**` (static files) | Vercel Edge Network | Served from `dist/client/assets/` |
-
-#### Local vs Vercel logic
-
-The server code (`server/index.ts`) detects whether it's running on Vercel using the `VERCEL` environment variable:
-```ts
-// server/index.ts (relevant logic)
-if (process.env.NODE_ENV === "production" && process.env.VERCEL !== "1") {
-  // Vike SSR middleware and static file serving — ONLY for local/VPS production
-}
-```
-This means:
-- **Locally** (`bun run dev`): Vite dev server handles Vike SSR, Hono handles API on port 3001, Vite proxies `/api/*` to it
-- **Vercel**: `vite-plugin-vercel` generates serverless functions for each Vike page route; `api/index.ts` handles `/api/*` as a separate serverless function
-- **Local production** (`NODE_ENV=production bun run server/index.ts`): The single Node server handles both SSR pages and API routes with static file serving
-
-#### Files involved
+The project is already set up for Vercel deployment. Here's what's configured:
 
 | File | Purpose |
 |------|---------|
-| `api/index.ts` | Vercel serverless function entry — imports `server/api.ts`, exports `app.fetch` for Vercel to call |
-| `server/api.ts` | API-only Hono app — all API routes (products, Stripe, dashboard, admin) extracted without SSR dependencies |
-| `server/index.ts` | Production server — imports from `server/api.ts`, adds Vike SSR + static files (only when NOT on Vercel) |
-| `vite.config.ts` | Includes `vercel()` plugin after `vike()` — `@vite-plugin-vercel/vike` is auto-detected and bundles each page |
-| `vercel.json` | Build command, output directory, framework, install command, git config |
+| `api/index.ts` | Vercel serverless function — exports the Hono API `fetch` handler |
+| `server/api.ts` | API-only Hono app (all API routes, no SSR middleware) |
+| `server/index.ts` | Production server — imports `server/api.ts`, adds Vike SSR + static file serving for non-Vercel deployments |
+| `vite.config.ts` | Includes `vite-plugin-vercel` adapter (auto-detects `@vite-plugin-vercel/vike`) |
+| `vercel.json` | Build and deployment configuration |
 
-#### What changes on Vercel vs local development
-
-| Feature | Local (`bun run dev`) | Vercel | Notes |
-|---------|----------------------|--------|-------|
-| Database | Local SQLite (`jmpls.db`) | Turso (hosted) | SQLite filesystem won't work; must use Turso |
-| Auth redirects | `http://localhost:3000` | Your Vercel domain | `BETTER_AUTH_URL` must match deployment URL |
-| Stripe webhook | `http://localhost:3001/api/stripe-webhook` | `https://your-domain.vercel.app/api/stripe-webhook` | Must update Stripe dashboard webhook URL |
-| Data file editing (admin panel) | Persists to `data/*.json` on disk | **Does NOT persist** | Vercel serverless filesystem is read-only (except `/tmp`). Admin panel edits will appear to succeed but reset on next deploy |
-| Image files | `assets/images/*` served from disk | Must be hosted externally (Imgur, etc.) | Same reason — no persistent filesystem for uploads |
+**Key architecture for Vercel:**
+- **Vike SSR pages** → built into serverless functions by `vite-plugin-vercel`
+- **API routes** (`/api/*`) → handled by the `api/index.ts` serverless function
+- **Database** → Local SQLite won't work on Vercel (no persistent filesystem). You must use [Turso](https://turso.tech) or another hosted database.
 
 ### Prerequisites
 
 1. A [Vercel](https://vercel.com) account
-2. A [Turso](https://turso.tech) account (free tier: up to 500 databases, 9GB each)
-3. A domain name if you want a custom domain (optional — Vercel provides `*.vercel.app`)
-4. All environment variable values ready
+2. A [Turso](https://turso.tech) account for the hosted database
+3. Environment variables ready (see [Environment Variables](#environment-variables))
 
-### Step 1: Set Up Turso (Hosted Database)
+### Step 1: Migrate Database to Turso
 
-Vercel serverless functions can't write to the local filesystem, so SQLite (`jmpls.db`) won't work. Turso is a hosted LibSQL database that is wire-compatible with SQLite, so the existing Drizzle schema works without changes.
+Vercel serverless functions don't have a persistent filesystem, so local SQLite won't work.
 
-**1. Create a Turso account**
+1. Create a free Turso account:
+   ```bash
+   # Install Turso CLI
+   brew install tursodatabase/tap/turso
+   # or: curl -sSfL https://get.tur.so/install.sh | bash
 
-Go to [turso.tech](https://turso.tech) and sign up (GitHub login works).
+   # Login and create a database
+   turso auth login
+   turso db create jmpls
+   turso db show jmpls --url  # copy this URL
+   ```
 
-**2. Install the Turso CLI**
+2. Push the schema:
+   ```bash
+   DB_URL="libsql://your-db-url.turso.io" bun run db:push
+   ```
 
-```bash
-# macOS (Homebrew)
-brew install tursodatabase/tap/turso
+> **Note**: Any data in your local `jmpls.db` won't transfer automatically. Export it before switching.
 
-# OR — direct install script
-eval "$(curl -sSfL https://get.tur.so/install.sh)"
-```
+### Step 2: Set Environment Variables on Vercel
 
-**3. Log in and create a database**
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `BETTER_AUTH_SECRET` | Yes | Auth secret (min 32 chars) |
+| `BETTER_AUTH_URL` | Yes | Your Vercel domain (`https://your-project.vercel.app`) |
+| `DB_URL` | Yes | Turso database URL |
+| `STRIPE_SECRET_KEY` | For payments | Stripe secret key |
+| `STRIPE_WEBHOOK_SECRET` | For webhooks | Stripe webhook signing secret |
+| `MICROSOFT_CLIENT_ID` | For Microsoft login | OAuth client ID |
+| `MICROSOFT_CLIENT_SECRET` | For Microsoft login | OAuth client secret |
+| `MICROSOFT_TENANT_ID` | For Microsoft login | OAuth tenant ID |
 
-```bash
-turso auth login
-# Opens a browser window — complete the login flow
-```
+### Step 3: Deploy
 
-Then create the production database:
-```bash
-turso db create jmpls-production
-```
-
-You'll see output like:
-```
-Created database jmpls-production at aws-us-east-1.turso.io
-```
-
-**4. Get the database URL**
-
-```bash
-turso db show jmpls-production --url
-```
-
-This prints something like:
-```
-libsql://jmpls-production-yourname.turso.io
-```
-
-Copy this — you'll use it as the `DB_URL` environment variable.
-
-**5. Generate an auth token**
-
-Turso databases require authentication for remote access. Generate a token:
-
-```bash
-turso db tokens create jmpls-production
-```
-
-This prints a long token string. You'll also need to set this in your environment. In `server/db/index.ts`, the client is initialized as:
-
-```ts
-const turso = createClient({
-  url: process.env.DB_URL || "file:./jmpls.db",
-});
-```
-
-If your Turso database requires a token (most do), you also need to pass `authToken`. Update `server/db/index.ts` to:
-
-```ts
-const turso = createClient({
-  url: process.env.DB_URL || "file:./jmpls.db",
-  authToken: process.env.DB_AUTH_TOKEN,
-});
-```
-
-And add `DB_AUTH_TOKEN` to your environment variables.
-
-**6. Push the schema**
-
-```bash
-# From the app/ directory
-DB_URL="libsql://jmpls-production-yourname.turso.io" DB_AUTH_TOKEN="your-token" bun run db:push
-```
-
-This runs `drizzle-kit push`, which reads the schema from `server/db/schema.ts` and creates all tables in Turso. You should see output like:
-```
-✓ Your database schema is up to date
-```
-
-**7. (Optional) Verify the tables**
-
-```bash
-turso db shell jmpls-production
-```
-
-Then in the SQL shell:
-```sql
-.tables
-.schema
-SELECT * FROM user;
-```
-
-**8. Export data from local SQLite (if you have existing data)**
-
-If you've been running locally with `jmpls.db` and need to migrate that data to Turso:
-
-```bash
-# Dump local data to SQL
-sqlite3 jmpls.db .dump > local-dump.sql
-
-# Remove schema-only lines (the .dump includes CREATE TABLE, which drizzle-kit already handles)
-# Then import into Turso
-cat local-dump.sql | turso db shell jmpls-production
-```
-
-> **Warning**: Be careful with `sqlite3 .dump` — it includes CREATE TABLE statements that may conflict if drizzle-kit already created the schemas. You may need to edit the dump file to remove CREATE statements before importing.
-
-### Step 2: Configure `drizzle.config.ts` for Turso
-
-The current `drizzle.config.ts` uses a local SQLite URL:
-
-```ts
-export default defineConfig({
-  schema: "./server/db/schema.ts",
-  out: "./server/db/migrations",
-  dialect: "sqlite",
-  dbCredentials: {
-    url: "file:./jmpls.db",
-  },
-});
-```
-
-To manage schema changes against Turso, you have two options:
-
-**Option A: Change the URL when running against Turso**
-
-```bash
-# Set the env var and drizzle-kit will use the dialect from drizzle.config.ts
-# but connect to the Turso URL via DB_URL environment variable
-# (Note: drizzle.config.ts uses url directly, so you'd need a script)
-```
-
-**Option B: Create a separate `drizzle.turso.config.ts`**
-
-```ts
-import { defineConfig } from "drizzle-kit";
-
-export default defineConfig({
-  schema: "./server/db/schema.ts",
-  out: "./server/db/migrations",
-  dialect: "sqlite",
-  dbCredentials: {
-    url: process.env.DB_URL || "file:./jmpls.db",
-    authToken: process.env.DB_AUTH_TOKEN,
-  },
-});
-```
-
-Then add a script to `package.json`:
-```json
-"db:push:turso": "drizzle-kit push --config=drizzle.turso.config.ts"
-```
-
-This way you can run `DB_URL=... DB_AUTH_TOKEN=... bun run db:push:turso` without modifying the original config.
-
-### Step 3: Set Environment Variables on Vercel
-
-Environment variables tell your app how to connect to Turso, Stripe, and auth providers when running on Vercel.
-
-**Via Vercel CLI:**
+**Via CLI (no web UI needed):**
 ```bash
 cd app
-bun x vercel env add BETTER_AUTH_SECRET
-# Paste the value, select production
-```
-
-**Required variables:**
-
-| Variable | Required | Description | Where to get it |
-|----------|----------|-------------|----------------|
-| `BETTER_AUTH_SECRET` | Yes | Auth secret (min 32 characters) | Generate with: `openssl rand -hex 32` or `bun -e "console.log(crypto.randomBytes(32).toString('hex'))"` |
-| `BETTER_AUTH_URL` | Yes | Your deployed URL (e.g. `https://jmpls.vercel.app`) | Use your Vercel project domain — needed for OAuth redirects and session cookies |
-| `DB_URL` | Yes | Turso database URL | From `turso db show jmpls-production --url` |
-| `DB_AUTH_TOKEN` | Yes | Turso authentication token | From `turso db tokens create jmpls-production` |
-
-**Conditional variables (depending on features used):**
-
-| Variable | When needed | Description |
-|----------|------------|-------------|
-| `STRIPE_SECRET_KEY` | Merchandise & donations | From Stripe Dashboard → Developers → API keys (`sk_live_...` or `sk_test_...`) |
-| `STRIPE_WEBHOOK_SECRET` | Stripe webhook | From Stripe Dashboard → Webhooks → your endpoint's signing secret (`whsec_...`) |
-| `MICROSOFT_CLIENT_ID` | Microsoft OAuth login | From Azure AD App Registration → Application (client) ID |
-| `MICROSOFT_CLIENT_SECRET` | Microsoft OAuth login | From Azure AD → Certificates & Secrets → Client secret value |
-| `MICROSOFT_TENANT_ID` | Microsoft OAuth login | From Azure AD → Directory (tenant) ID |
-
-**Via Vercel Dashboard (Web UI):**
-1. Go to [vercel.com](https://vercel.com)
-2. Select your project
-3. Settings → Environment Variables
-4. Add each variable and its value
-5. Under "Environments", select "Production"
-6. Click Save
-
-**Via `.env` file (for CLI deployment):**
-Create a `.env.production` file in the `app/` directory:
-```bash
-BETTER_AUTH_SECRET=your-secret
-BETTER_AUTH_URL=https://jmpls.vercel.app
-DB_URL=libsql://jmpls-production-yourname.turso.io
-DB_AUTH_TOKEN=your-turso-token
-STRIPE_SECRET_KEY=sk_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-```
-
-Then deploy with `bun x vercel --prod` and the CLI will prompt you to link the file.
-
-> **Security**: Never commit `.env` or `.env.production` to version control. The `.gitignore` already excludes `.env*`.
-
-### Step 4: Configure Stripe Webhook for Production
-
-After deploying, Stripe needs to send webhook events to your production URL so order/donation statuses are updated.
-
-1. Go to [Stripe Dashboard](https://dashboard.stripe.com/webhooks)
-2. Click **Add endpoint**
-3. **Endpoint URL**: `https://your-domain.vercel.app/api/stripe-webhook`
-4. **Events to send**: Select `checkout.session.completed`
-5. Click **Add endpoint**
-6. Copy the **Signing secret** (starts with `whsec_`)
-7. Set this as `STRIPE_WEBHOOK_SECRET` in Vercel environment variables and redeploy
-
-> **Local testing webhook**: For testing webhooks locally, use the Stripe CLI: `stripe listen --forward-to localhost:3001/api/stripe-webhook` — this creates a forwarding tunnel from Stripe to your local server.
-
-### Step 5: Deploy
-
-**Prerequisite check:**
-- [ ] Turso database created and schema pushed
-- [ ] All environment variables added to Vercel
-- [ ] Git repo pushed to GitHub (or Git-compatible host)
-- [ ] Stripe webhook endpoint configured for production URL
-
-**Option A: Deploy via CLI (fastest, no web UI)**
-
-```bash
-cd /Users/taufeeqali/Projects/JMPLS Website/app
-
-# First time: link to a Vercel project
-bun x vercel link
-# Follow the prompts — create a new project or link to existing
-
-# Deploy to production
 bun x vercel --prod
 ```
+The CLI will prompt you to link to an existing project or create a new one. The `vercel.json` in `app/` handles all build settings.
 
-What happens:
-1. Vercel CLI uploads the `app/` directory
-2. Vercel runs `bun install` (as specified in `vercel.json`)
-3. Vercel runs `bun run build` (as specified in `vercel.json`)
-4. `vite-plugin-vercel` generates serverless functions for each Vike page
-5. Vercel detects `api/index.ts` as a serverless function
-6. Vercel deploys everything and gives you a URL like `https://your-project.vercel.app`
-
-**Option B: Deploy via Git (GitHub integration)**
-
-1. Push your code to GitHub:
-   ```bash
-   git push origin main
-   ```
-
+**Via Git (GitHub integration):**
+1. Push the repo to GitHub
 2. Go to [vercel.com/new](https://vercel.com/new)
-3. Import your GitHub repository
-4. **Root Directory**: Set this to `app` (this is critical — Vercel needs to find `package.json` in the root directory)
-5. **Build and Output Settings**: Leave as defaults (handled by `vercel.json`)
-6. **Environment Variables**: Add all variables from Step 3
-7. Click **Deploy**
+3. Import your repo
+4. Set **Root Directory** to `app` (where `package.json` lives)
+5. Add environment variables from Step 2
+6. Deploy
 
-Every subsequent push to `main` will auto-deploy.
+> The `vercel.json` handles all build and output settings — no need to configure through the web UI beyond root directory and env vars.
 
-### Step 6: Set Up a Custom Domain (Optional)
+### Notes
 
-If you own a domain (e.g., `jmpls.org`):
+- **`vite-plugin-vercel`** automatically bundles Vike SSR pages into serverless functions. The `@vite-plugin-vercel/vike` integration is auto-detected.
+- **`api/index.ts`** is auto-detected by Vercel as a serverless function serving all `/api/*` routes.
+- **Cold starts**: The first request may be slow. This is normal for serverless.
+- **Local development** still runs via `bun run dev` — the api-server Vite plugin starts a Hono server on port 3001 as before.
 
-1. Go to Vercel Dashboard → Your Project → **Domains**
-2. Enter your domain (e.g., `jmpls.org`) and click **Add**
-3. Vercel will show you DNS records to configure (typically a CNAME record pointing to `cname.vercel-dns.com` or A records to Vercel's IPs)
-4. Update your domain's DNS settings at your registrar
-5. Wait for DNS propagation (a few minutes to an hour)
-6. Update `BETTER_AUTH_URL` to `https://jmpls.org` and redeploy
-7. Update Stripe webhook URL to `https://jmpls.org/api/stripe-webhook`
+### Alternative: Single-Server Deployment
 
-### Important Architecture Notes
-
-#### Data files (`data/*.json`) on Vercel
-
-The admin panel reads and writes JSON files from the `data/` directory on disk. On Vercel serverless functions, the filesystem is **read-only** except for `/tmp`. This means:
-
-- **Existing data files** (committed to git) will be readable — they're bundled with the deployment
-- **Admin panel edits** (saving through the Dashboard → Content Admin) will appear to succeed but changes are **lost on the next deployment** or when the serverless instance recycles
-
-**Workaround options:**
-1. **Edit files locally and redeploy** — the most reliable approach. Make changes in `data/*.json`, commit, and push to auto-deploy
-2. **Store data in the database** — Future enhancement: migrate the `data/` file system to database tables and serve via API endpoints
-3. **Use a CDN or object storage** — Store files in S3/R2 and fetch via API
-
-#### Stripe webhook delivery
-
-- Stripe webhooks are sent to a **public URL** only. During development, the Stripe CLI's `listen` command creates a tunnel to your local machine
-- On Vercel, the webhook endpoint is `https://your-domain.vercel.app/api/stripe-webhook`
-- If your custom domain isn't set up yet, use the `*.vercel.app` domain initially and update the Stripe webhook URL later
-
-#### Microsoft OAuth redirect URIs
-
-After deploying, you must update your Azure AD app registration:
-1. Go to [Azure Portal → App Registrations](https://portal.azure.com/#view/Microsoft_AAD_RegisteredApps/)
-2. Select your app
-3. Under **Authentication** → **Redirect URIs**, add:
-   ```
-   https://your-domain.vercel.app/api/auth/callback/microsoft
-   ```
-4. Save
-
-Without this, Microsoft login will fail with a redirect URI mismatch error.
-
-#### Cold starts
-
-- Vercel serverless functions spin down after periods of inactivity (typically 15-30 minutes on the Hobby plan)
-- The first request after idle will take **2-5 seconds** (the "cold start")
-- Subsequent requests are fast (<100ms)
-- This applies to both page loads (SSR) and API calls
-- On the Pro plan ($20/month), you can enable "Lambda Advanced Features" for faster cold starts
-
-#### Build and deploy times
-
-| Step | Typical time | Notes |
-|------|-------------|-------|
-| `bun install` | 5-15s | Bun is very fast — these are cached if `bun.lock` hasn't changed |
-| `bun run build` | 10-30s | Vite builds the client bundle + Vike renders pages |
-| `vite-plugin-vercel` | 5-10s | Generates serverless functions for each page route |
-| Vercel deployment | 10-20s | Uploading artifacts to Vercel's CDN |
-| **Total** | **30-75s** | From `vercel --prod` to live |
-
-### Troubleshooting
-
-| Problem | Likely Cause | Solution |
-|---------|-------------|----------|
-| Build fails with `Cannot find module` | Missing dependency | Check `package.json` includes all imports. Run `bun install` locally first |
-| API returns 404 | Serverless function not detecting routes | Check the path in `api/index.ts` matches Hono's route definitions |
-| Login fails with redirect error | `BETTER_AUTH_URL` doesn't match actual domain | Set to exact deployed URL (including `https://`) |
-| Microsoft login fails | Wrong redirect URI in Azure AD | Add `https://your-domain.vercel.app/api/auth/callback/microsoft` to Azure AD |
-| Stripe webhook returning 400 | Wrong signing secret | Copy the fresh `whsec_...` from Stripe Dashboard → Webhooks |
-| Admin panel saves but changes don't persist | Vercel read-only filesystem | Edit `data/*.json` locally and redeploy via git |
-| Cold starts are slow | Serverless idle timeout | Normal — or upgrade to Pro plan for faster responses |
-| Database connection refused | Wrong Turso URL or missing auth token | Verify `DB_URL` and `DB_AUTH_TOKEN` are set correctly in Vercel env vars |
-
-### Local Production Test (Before Deploying)
-
-To verify the production build works before deploying to Vercel:
+If you prefer a VPS (DigitalOcean, Railway, Fly.io, etc.) instead of Vercel, the existing `server/index.ts` still works for traditional deployments:
 
 ```bash
-# Build the Vike pages
-bun run build
-
-# Start the production server (runs on port 3000)
-NODE_ENV=production BETTER_AUTH_SECRET=your-secret BETTER_AUTH_URL=http://localhost:3000 \
-  bun run server/index.ts
+NODE_ENV=production BETTER_AUTH_SECRET=... bun run server/index.ts
 ```
 
-This starts the full Node server with Vike SSR + static file serving. If everything works at `http://localhost:3000`, the Vercel deployment will work too (with Turso instead of SQLite).
-
----
-
-### Alternative: Single-Server Deployment (VPS)
-
-If you prefer a traditional VPS (DigitalOcean Droplet, Railway, Fly.io, Hetzner, etc.) instead of Vercel, you can run the full Node server directly. This approach:
-
-- **Works with local SQLite** — no Turso needed
-- **Has persistent file storage** — admin panel edits to `data/*.json` persist correctly
-- **No cold starts** — server runs continuously
-- **Simpler architecture** — single process handles both SSR and API
-
-**Deployment steps:**
-
-1. Set up a VPS or use a platform like Railway/Fly.io
-2. Copy the `app/` directory to the server (or use Git)
-3. Install Bun on the server:
-   ```bash
-   curl -fsSL https://bun.sh/install | bash
-   ```
-4. Install dependencies:
-   ```bash
-   cd app && bun install
-   ```
-5. Build the frontend:
-   ```bash
-   bun run build
-   ```
-6. Set environment variables:
-   ```bash
-   export BETTER_AUTH_SECRET=your-secret
-   export BETTER_AUTH_URL=https://your-domain.com
-   # ... other vars
-   ```
-7. Start the server:
-   ```bash
-   NODE_ENV=production bun run server/index.ts &
-   ```
-8. Set up a reverse proxy (Nginx/Caddy) to forward requests to port 3000
-
-**Example Nginx config:**
-```nginx
-server {
-    listen 80;
-    server_name your-domain.com;
-
-    location / {
-        proxy_pass http://localhost:3000;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;
-    }
-}
-```
-
-**Process management:** Use `pm2` or a systemd service to keep the server running:
-```bash
-npm install -g pm2
-pm2 start "NODE_ENV=production bun run server/index.ts" --name jmpls
-pm2 save
-pm2 startup
-```
-
-This VPS approach doesn't need `vite-plugin-vercel` or the `api/` directory — those are Vercel-specific.
+This approach works with local SQLite and doesn't need `vite-plugin-vercel` or the `api/` directory.
