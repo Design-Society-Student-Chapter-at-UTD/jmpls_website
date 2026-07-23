@@ -24,7 +24,13 @@ export const auth = betterAuth({
       tenantId: process.env.MICROSOFT_TENANT_ID || "common",
     },
   },
-  // Allow dev server origins and set base URL dynamically
+  // Set base URL from env var (required for production)
   baseURL: process.env.BETTER_AUTH_URL || "http://localhost:3000",
-  trustedOrigins: ["http://localhost:3000", "http://localhost:3001", "http://localhost:3002"],
+  // Allow both local dev and production origins
+  trustedOrigins: [
+    "http://localhost:3000",
+    "http://localhost:3001",
+    "http://localhost:3002",
+    ...(process.env.TRUSTED_ORIGINS ? process.env.TRUSTED_ORIGINS.split(",") : []),
+  ],
 });
