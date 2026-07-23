@@ -52,28 +52,30 @@ app.on(["POST", "GET"], "/api/auth/**", (c) => auth.handler(c.req.raw));
 // ── Product API routes ─────────────────────────────────────────────────
 
 app.get("/api/products", async (c) => {
-  const all = await db
-    .select()
-    .from(products)
-    .where(eq(products.active, true))
-    .orderBy(desc(products.createdAt));
-  return c.json(
-    all.map((p) => ({
+  try {
+    const filePath = path.join(DATA_DIR, "merchandise.json");
+    const raw = fs.readFileSync(filePath, "utf-8");
+    const all = JSON.parse(raw);
+    return c.json(all.map((p: any) => ({
       ...p,
-      price: p.price / 100, // convert cents to dollars
-    }))
-  );
+      price: p.price, // already in dollars
+    })));
+  } catch {
+    return c.json([]);
+  }
 });
 
 app.get("/api/products/:id", async (c) => {
-  const id = c.req.param("id");
-  const product = await db
-    .select()
-    .from(products)
-    .where(eq(products.id, id))
-    .get();
-  if (!product) return c.json({ error: "Not found" }, 404);
-  return c.json({ ...product, price: product.price / 100 });
+  try {
+    const filePath = path.join(DATA_DIR, "merchandise.json");
+    const raw = fs.readFileSync(filePath, "utf-8");
+    const all = JSON.parse(raw);
+    const product = all.find((p: any) => p.id === c.req.param("id"));
+    if (!product) return c.json({ error: "Not found" }, 404);
+    return c.json(product);
+  } catch {
+    return c.json({ error: "Not found" }, 404);
+  }
 });
 
 // ── Stripe Checkout Session ────────────────────────────────────────────
