@@ -2,7 +2,7 @@ import react from "@vitejs/plugin-react";
 import vike from "vike/plugin";
 import { defineConfig } from "vite";
 import tailwindcss from "@tailwindcss/vite";
-import vercel from "vite-plugin-vercel";
+import vercel from "vite-plugin-vercel/vite";
 import path from "path";
 
 export default defineConfig({
