@@ -1,7 +1,16 @@
 import { renderPage } from "vike/server";
+import { app } from "../server/api";
 
 export default {
   fetch: async (request: Request) => {
+    const url = new URL(request.url);
+
+    // API routes → Hono
+    if (url.pathname.startsWith("/api")) {
+      return app.fetch(request);
+    }
+
+    // Page routes → Vike SSR
     const pageContextInit = {
       urlOriginal: request.url,
       headersOriginal: request.headers,
