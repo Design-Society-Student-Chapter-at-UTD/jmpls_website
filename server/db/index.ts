@@ -1,18 +1,21 @@
 import { drizzle } from "drizzle-orm/libsql";
+import { createClient } from "@libsql/client/web";
 
-// Try the native Node client first (supports file: for local dev).
-// Fall back to the web client (no native binary) for Vercel.
-let createClient: (config: any) => any;
-try {
-  const mod = await import("@libsql/client");
-  createClient = mod.createClient;
-} catch {
-  const mod = await import("@libsql/client/web");
-  createClient = mod.createClient;
+// Note: The web client only supports remote Turso URLs (libsql://, https://, wss://).
+// Set DB_URL to your Turso database URL for both local dev and production.
+// File: URLs (file:./jmpls.db) are NOT supported by the web client.
+const dbUrl = process.env.DB_URL;
+if (!dbUrl) {
+  throw new Error(
+    "DB_URL environment variable is required. " +
+    "Set it to your Turso database URL (e.g. libsql://jmpls-production-xxx.turso.io). " +
+    "See docs/DEPLOYMENT.md for Turso setup."
+  );
 }
 
 const turso = createClient({
-  url: process.env.DB_URL || "file:./jmpls.db",
+  url: dbUrl,
+  authToken: process.env.DB_AUTH_TOKEN,
 });
 
 export const db = drizzle(turso);
