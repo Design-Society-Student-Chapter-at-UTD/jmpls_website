@@ -1,9 +1,8 @@
-import { drizzle } from "drizzle-orm/libsql/wasm";
-import { createClient } from "@libsql/client-wasm";
+import { drizzle } from "drizzle-orm/libsql/http";
+import { createClient } from "@libsql/client/http";
 
-// Note: The WASM client only supports remote Turso URLs (libsql://, https://, wss://).
+// Uses the HTTP-based Hrana client (pure JS, no native binaries).
 // Set DB_URL to your Turso database URL for both local dev and production.
-// File: URLs (file:./jmpls.db) are NOT supported by the WASM client.
 const dbUrl = process.env.DB_URL;
 if (!dbUrl) {
   throw new Error(
