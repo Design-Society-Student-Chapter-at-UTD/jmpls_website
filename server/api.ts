@@ -273,6 +273,10 @@ app.get("/api/orders/:id", async (c) => {
 // ── Dashboard API ────────────────────────────────────────────────────────
 
 app.get("/api/dashboard/stats", async (c) => {
+  const currentUser = await getSessionUser(c);
+  if (!currentUser || !isAdminEmail(currentUser.email)) {
+    return c.json({ error: "Unauthorized" }, 403);
+  }
   const totalUsers = await db.select({ count: count() }).from(user).get();
 
   const ordersList = await db
@@ -307,6 +311,10 @@ app.get("/api/dashboard/stats", async (c) => {
 });
 
 app.get("/api/dashboard/orders", async (c) => {
+  const currentUser = await getSessionUser(c);
+  if (!currentUser || !isAdminEmail(currentUser.email)) {
+    return c.json({ error: "Unauthorized" }, 403);
+  }
   const all = await db
     .select()
     .from(orders)
