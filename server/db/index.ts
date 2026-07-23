@@ -1,4 +1,4 @@
-import { drizzle } from "drizzle-orm/libsql";
+import { drizzle } from "drizzle-orm/libsql/wasm";
 import { createClient } from "@libsql/client-wasm";
 
 // Note: The WASM client only supports remote Turso URLs (libsql://, https://, wss://).
