@@ -28,5 +28,55 @@
     "image": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&q=80&w=800",
     "category": "Home",
     "details": "Ceramic, 11oz. Microwave and dishwasher safe."
+  },
+  {
+    "id": "merch-4",
+    "name": "JMPLS T-Shirt",
+    "description": "Lightweight, breathable tee for everyday wear.",
+    "price": 20.00,
+    "quantity": 75,
+    "image": "https://images.unsplash.com/photo-1576566588028-4147f3842f27?auto=format&fit=crop&q=80&w=800",
+    "category": "Apparel",
+    "details": "100% pre-shrunk cotton. Available in sizes S-XXL. Screen-printed logo front and center."
+  },
+  {
+    "id": "merch-5",
+    "name": "LSAT Prep Flashcards",
+    "description": "Essential logic and reasoning flashcards by JMPLS.",
+    "price": 12.00,
+    "quantity": 200,
+    "image": "https://images.unsplash.com/photo-1606953257870-d2d2f3b91af5?auto=format&fit=crop&q=80&w=800",
+    "category": "Study Materials",
+    "details": "200 double-sided cards covering logic games, reasoning, and reading comprehension strategies."
+  },
+  {
+    "id": "merch-6",
+    "name": "JMPLS Baseball Cap",
+    "description": "Structured cap with embroidered JMPLS crest.",
+    "price": 22.00,
+    "quantity": 60,
+    "image": "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?auto=format&fit=crop&q=80&w=800",
+    "category": "Apparel",
+    "details": "Cotton-poly blend, adjustable snapback. One size fits most."
+  },
+  {
+    "id": "merch-7",
+    "name": "Water Bottle",
+    "description": "Double-walled stainless steel, JMPLS engraved.",
+    "price": 18.00,
+    "quantity": 80,
+    "image": "https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&q=80&w=800",
+    "category": "Accessories",
+    "details": "20oz capacity. Keeps drinks cold for 24 hours or hot for 12 hours."
+  },
+  {
+    "id": "merch-8",
+    "name": "Law School Admissions Guide",
+    "description": "Exclusive JMPLS guide to law school applications.",
+    "price": 10.00,
+    "quantity": 150,
+    "image": "https://images.unsplash.com/photo-1589829085813-8e4967afc2c6?auto=format&fit=crop&q=80&w=800",
+    "category": "Study Materials",
+    "details": "Digital download included with purchase. Covers personal statements, resumes, and interview tips."
   }
 ]
