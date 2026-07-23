@@ -5,6 +5,7 @@ export default defineConfig({
   out: "./server/db/migrations",
   dialect: "sqlite",
   dbCredentials: {
-    url: "file:./jmpls.db",
+    url: process.env.DB_URL || "file:./jmpls.db",
+    authToken: process.env.DB_AUTH_TOKEN,
   },
 });
