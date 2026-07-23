@@ -1,11 +1,15 @@
 import { drizzle } from "drizzle-orm/libsql";
 
-// On Vercel, use the WASM-compatible web client to avoid native binary issues.
-// Locally, use the Node client which supports file: URLs.
-const { createClient } =
-  process.env.VERCEL === "1"
-    ? await import("@libsql/client/web")
-    : await import("@libsql/client");
+// Try the native Node client first (supports file: for local dev).
+// Fall back to the web client (no native binary) for Vercel.
+let createClient: (config: any) => any;
+try {
+  const mod = await import("@libsql/client");
+  createClient = mod.createClient;
+} catch {
+  const mod = await import("@libsql/client/web");
+  createClient = mod.createClient;
+}
 
 const turso = createClient({
   url: process.env.DB_URL || "file:./jmpls.db",
