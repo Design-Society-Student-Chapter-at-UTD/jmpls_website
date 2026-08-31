@@ -3,7 +3,7 @@ import {
   BarChart3, ShoppingCart, Users, DollarSign, Package,
   RefreshCw, ExternalLink, CreditCard, Truck, XCircle,
   Clock, FileText, Save, AlertCircle, Check, Eye,
-  Plus, Trash2, Gift,
+  Plus, Trash2, Gift, HelpCircle,
 } from "lucide-react";
 import { authClient } from "../../src/lib/auth-client";
 
@@ -52,7 +52,7 @@ export default function Page() {
   const [adminCheckDone, setAdminCheckDone] = useState(false);
   const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<"overview" | "money" | "events" | "members" | "content">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "money" | "events" | "members" | "content" | "support">("overview");
   const [isAdmin, setIsAdmin] = useState(false);
 
   useEffect(() => {
@@ -217,6 +217,14 @@ export default function Page() {
                 >
                   Content
                 </button>
+                <button
+                  onClick={() => setActiveTab("support")}
+                  className={`pb-4 text-sm font-bold uppercase tracking-widest transition-colors border-b-2 shrink-0 ${
+                    activeTab === "support" ? "border-maroon text-maroon" : "border-transparent text-gray-400 hover:text-gray-600"
+                  }`}
+                >
+                  Support
+                </button>
               </>
             )}
           </div>
@@ -307,7 +315,8 @@ export default function Page() {
       {activeTab === "money" && <MoneyTab />}
       {activeTab === "events" && <EventsTab />}
       {activeTab === "members" && <MembersTab />}
-      {activeTab === "content" && <AdminPanel />}
+      {activeTab === "content" && <StructuredContentPanel />}
+      {activeTab === "support" && <SupportTab />}
     </div>
   );
 }
@@ -416,6 +425,36 @@ const FILE_DESCRIPTIONS: Record<string, string> = {
   "merchandise.json": "Product listings for the merchandise page",
   "admin-config.json": "List of email addresses with admin access",
 };
+
+function SupportTab() {
+  const [docs, setDocs] = useState<{ title: string; sections: { title: string; body: string }[] } | null>(null);
+  useEffect(() => {
+    fetch("/api/content/support-docs").then((r) => r.json()).then(setDocs).catch(() => {});
+  }, []);
+  if (!docs) return <div className="max-w-[1000px] mx-auto px-6 md:px-12 py-12 text-gray-400">Loading support documentation…</div>;
+  return (
+    <div className="max-w-[1000px] mx-auto px-6 md:px-12 py-8">
+      <div className="flex items-center gap-3 mb-8"><HelpCircle className="size-6 text-maroon" /><div><h2 className="text-xl font-serif font-bold text-gray-900">{docs.title}</h2><p className="text-sm text-gray-500">Quick reference for JMPLS administrators.</p></div></div>
+      <div className="grid gap-4 md:grid-cols-2">{docs.sections.map((section) => <section key={section.title} className="bg-white border border-gray-200 rounded-sm p-6"><h3 className="font-serif font-bold text-gray-900 mb-2">{section.title}</h3><p className="text-sm leading-relaxed text-gray-600">{section.body}</p></section>)}</div>
+    </div>
+  );
+}
+
+function StructuredContentPanel() {
+  const [config, setConfig] = useState<any>(null);
+  const [saving, setSaving] = useState(false);
+  const [message, setMessage] = useState("");
+  useEffect(() => { fetch("/api/admin/data/site-config.json").then((r) => r.json()).then((data) => setConfig(JSON.parse(data.content))).catch(() => {}); }, []);
+  const update = (path: string, value: string) => setConfig((current: any) => ({ ...current, organization: { ...current.organization, [path]: value } }));
+  const save = async () => {
+    if (!config) return;
+    setSaving(true); setMessage("");
+    const response = await fetch("/api/admin/data/site-config.json", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ content: JSON.stringify(config, null, 2) }) });
+    setMessage(response.ok ? "Saved successfully." : "Save failed."); setSaving(false);
+  };
+  if (!config) return <div className="max-w-[1000px] mx-auto px-6 md:px-12 py-12 text-gray-400">Loading content settings…</div>;
+  return <div className="max-w-[1000px] mx-auto px-6 md:px-12 py-8"><div className="mb-8"><h2 className="text-xl font-serif font-bold text-gray-900">Site Content</h2><p className="text-sm text-gray-500 mt-1">Edit common site settings with dedicated fields. Use Events and Members for their specialized editors.</p></div><div className="bg-white border border-gray-200 rounded-sm p-6 grid gap-5 md:grid-cols-2">{[["name","Organization name"],["shortName","Short name"],["email","Contact email"],["university","University"],["tagline","Tagline"],["zelle","Zelle"],["cashapp","Cash App"]].map(([key,label]) => <label key={key} className="text-xs font-bold uppercase tracking-widest text-gray-400">{label}<input value={config.organization?.[key] || ""} onChange={(e) => update(key, e.target.value)} className="mt-2 w-full px-3 py-2 text-sm font-normal normal-case tracking-normal text-gray-900 border border-gray-200 rounded-sm focus:outline-none focus:border-maroon" /></label>)}<div className="md:col-span-2 flex items-center gap-4"><button onClick={save} disabled={saving} className="px-5 py-2.5 bg-maroon text-white font-bold uppercase tracking-widest text-xs rounded-sm disabled:opacity-50">{saving ? "Saving…" : "Save settings"}</button>{message && <span className="text-sm text-gray-500">{message}</span>}</div></div></div>;
+}
 
 function AdminPanel() {
   const [files, setFiles] = useState<DataFile[]>([]);
@@ -585,6 +624,7 @@ function AdminPanel() {
 /* ── Money Tab ──────────────────────────────────────────────────── */
 
 function MoneyTab() {
+  const [activeSection, setActiveSection] = useState<"payments" | "marketplace">("payments");
   const [donations, setDonations] = useState<Donation[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
@@ -599,6 +639,8 @@ function MoneyTab() {
       setLoading(false);
     });
   }, []);
+
+  if (activeSection === "marketplace") return <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-8"><div className="flex gap-4 mb-8 border-b border-gray-100"><button onClick={() => setActiveSection("payments")} className="pb-3 text-xs font-bold uppercase tracking-widest text-gray-400">Payments</button><button onClick={() => setActiveSection("marketplace")} className="pb-3 text-xs font-bold uppercase tracking-widest border-b-2 border-maroon text-maroon">Marketplace</button></div><MarketplaceTab /></div>;
 
   if (loading) {
     return (
@@ -618,6 +660,7 @@ function MoneyTab() {
 
   return (
     <div className="max-w-[1400px] mx-auto px-6 md:px-12 py-8 space-y-10">
+      <div className="flex gap-4 border-b border-gray-100"><button onClick={() => setActiveSection("payments")} className="pb-3 text-xs font-bold uppercase tracking-widest border-b-2 border-maroon text-maroon">Payments</button><button onClick={() => setActiveSection("marketplace")} className="pb-3 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-gray-600">Marketplace</button></div>
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           icon={<DollarSign className="size-5" />}
@@ -722,6 +765,15 @@ function MoneyTab() {
       </div>
     </div>
   );
+}
+
+function MarketplaceTab() {
+  const [products, setProducts] = useState<any[]>([]);
+  const [saving, setSaving] = useState<string | null>(null);
+  useEffect(() => { fetch("/api/admin/products").then((r) => r.json()).then(setProducts).catch(() => {}); }, []);
+  const update = (id: string, field: string, value: any) => setProducts((items) => items.map((item) => item.id === id ? { ...item, [field]: value } : item));
+  const save = async (product: any) => { setSaving(product.id); const response = await fetch(`/api/admin/products/${product.id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: product.name, description: product.description, price: product.price / 100, quantity: product.quantity, image: product.image, category: product.category, details: product.details, active: product.active }) }); if (response.ok) { const saved = await response.json(); setProducts((items) => items.map((item) => item.id === saved.id ? saved : item)); } setSaving(null); };
+  return <div><div className="mb-6"><h2 className="text-xl font-serif font-bold text-gray-900">Marketplace</h2><p className="text-sm text-gray-500 mt-1">Edit individual products and control public availability.</p></div><div className="space-y-4">{products.map((product) => <div key={product.id} className="bg-white border border-gray-200 rounded-sm p-6 grid gap-4 md:grid-cols-2"><label className="text-xs font-bold uppercase tracking-widest text-gray-400">Name<input value={product.name} onChange={(e) => update(product.id,"name",e.target.value)} className="mt-2 w-full border border-gray-200 p-2 text-sm font-normal normal-case tracking-normal text-gray-900" /></label><label className="text-xs font-bold uppercase tracking-widest text-gray-400">Price<input type="number" min="0" step="0.01" value={(product.price / 100).toFixed(2)} onChange={(e) => update(product.id,"price",Number(e.target.value) * 100)} className="mt-2 w-full border border-gray-200 p-2 text-sm font-normal normal-case tracking-normal text-gray-900" /></label><label className="text-xs font-bold uppercase tracking-widest text-gray-400">Quantity<input type="number" min="0" value={product.quantity} onChange={(e) => update(product.id,"quantity",Number(e.target.value))} className="mt-2 w-full border border-gray-200 p-2 text-sm font-normal normal-case tracking-normal text-gray-900" /></label><label className="flex items-center gap-3 text-xs font-bold uppercase tracking-widest text-gray-500"><input type="checkbox" checked={product.active} onChange={(e) => update(product.id,"active",e.target.checked)} /> Available for sale</label><label className="md:col-span-2 text-xs font-bold uppercase tracking-widest text-gray-400">Description<textarea value={product.description} onChange={(e) => update(product.id,"description",e.target.value)} rows={2} className="mt-2 w-full border border-gray-200 p-2 text-sm font-normal normal-case tracking-normal text-gray-900" /></label><div className="md:col-span-2 flex items-center gap-4"><button onClick={() => save(product)} disabled={saving === product.id} className="px-5 py-2.5 bg-maroon text-white text-xs font-bold uppercase tracking-widest disabled:opacity-50">{saving === product.id ? "Saving…" : "Save item"}</button>{!product.active && <span className="text-xs font-bold uppercase tracking-widest text-red-600">Sold out / hidden</span>}</div></div>)}{products.length === 0 && <p className="text-gray-400 italic">No marketplace items found.</p>}</div></div>;
 }
 
 /* ── Events Tab ─────────────────────────────────────────────────── */

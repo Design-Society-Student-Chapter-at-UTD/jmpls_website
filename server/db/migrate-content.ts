@@ -53,6 +53,18 @@ async function migrate() {
   for (const email of config.admins || []) {
     await db.update(user).set({ role: "admin", updatedAt: new Date() }).where(eq(user.email, email));
   }
+  const supportDocs = {
+    title: "JMPLS Admin Support",
+    sections: [
+      { title: "Getting started", body: "Sign in with an administrator account, then use the Dashboard tabs. Changes are stored in Turso and become available immediately." },
+      { title: "Content management", body: "Use Content for site settings, Events for events and law-school tours, and Members for officers and administrator access." },
+      { title: "Marketplace", body: "Open Money → Marketplace to edit an item. Set quantity to zero or mark it Sold out to remove it from the public store. Restore quantity and availability to return it." },
+      { title: "Account recovery", body: "Passwords cannot be viewed. Use Members → Registered Users → Reset password for an email/password account; existing sessions are revoked." },
+      { title: "Deployment notes", body: "Turso is the runtime source of truth. Keep DB_URL, DB_AUTH_TOKEN, BETTER_AUTH_SECRET, and trusted origins configured in Vercel." },
+    ],
+  };
+  await db.insert(siteContent).values({ key: "support-docs", content: JSON.stringify(supportDocs), createdAt: new Date(), updatedAt: new Date() })
+    .onConflictDoUpdate({ target: siteContent.key, set: { content: JSON.stringify(supportDocs), updatedAt: new Date() } });
   console.log("Imported content and synchronized configured admin roles.");
 }
 

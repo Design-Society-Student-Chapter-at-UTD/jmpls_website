@@ -75,6 +75,36 @@ app.get("/api/products/:id", async (c) => {
   return c.json({ ...product, price: product.price / 100 });
 });
 
+app.get("/api/admin/products", async (c) => {
+  const currentUser = await getSessionUser(c);
+  if (!await isAdminUser(currentUser)) return c.json({ error: "Unauthorized" }, 403);
+  return c.json(await db.select().from(products).orderBy(asc(products.name)).all());
+});
+
+app.patch("/api/admin/products/:id", async (c) => {
+  const currentUser = await getSessionUser(c);
+  if (!await isAdminUser(currentUser)) return c.json({ error: "Unauthorized" }, 403);
+  const body = await c.req.json().catch(() => ({}));
+  const updates: Record<string, unknown> = {};
+  for (const field of ["name", "description", "image", "category", "details"] as const) {
+    if (typeof body[field] === "string") updates[field] = body[field].trim();
+  }
+  if (body.price !== undefined) {
+    const price = Number(body.price);
+    if (!Number.isFinite(price) || price < 0) return c.json({ error: "Invalid price" }, 400);
+    updates.price = Math.round(price * 100);
+  }
+  if (body.quantity !== undefined) {
+    const quantity = Number(body.quantity);
+    if (!Number.isInteger(quantity) || quantity < 0) return c.json({ error: "Invalid quantity" }, 400);
+    updates.quantity = quantity;
+  }
+  if (body.active !== undefined) updates.active = body.active === true;
+  const updated = await db.update(products).set(updates).where(eq(products.id, c.req.param("id"))).returning().get();
+  if (!updated) return c.json({ error: "Product not found" }, 404);
+  return c.json({ ...updated, price: updated.price / 100 });
+});
+
 app.get("/api/cart", async (c) => {
   const currentUser = await requireSessionUser(c);
   if (!currentUser) return c.json({ error: "Sign in required" }, 401);
