@@ -1,10 +1,13 @@
 import React, { useState, useMemo } from "react";
 import { X, ChevronLeft, ChevronRight, Grid3X3 } from "lucide-react";
-import galleryData from "../../data/gallery.json";
+import { useSiteContent } from "../../src/lib/content-client";
 
 export default function Page() {
   const [selectedImage, setSelectedImage] = useState<any>(null);
   const [filter, setFilter] = useState("All");
+  const { content: galleryData } = useSiteContent<any[]>("gallery.json");
+
+  if (!galleryData) return null;
 
   const categories = useMemo(() => {
     return ["All", ...new Set(galleryData.map((p) => p.category))];

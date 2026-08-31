@@ -6,6 +6,7 @@
     "db:push": "drizzle-kit push",
     "db:migrate": "drizzle-kit migrate",
     "db:seed": "bun run server/db/seed.ts"
+    ,"db:migrate-content": "bun run server/db/migrate-content.ts"
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.8",

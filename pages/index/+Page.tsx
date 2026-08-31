@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import heroBgUrl from "../../assets/images/campus-tour-trellis.jpg";
+import { useSiteContent } from "../../src/lib/content-client";
 
 export default function Page() {
   return (
@@ -63,11 +64,11 @@ export default function Page() {
   );
 }
 
-import carouselData from "../../data/home-carousel.json";
-
 function Carousel() {
-  const images = carouselData;
+  const { content: images } = useSiteContent<any[]>("home-carousel.json");
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  if (!images?.length) return null;
 
   // Auto scroll
   useEffect(() => {

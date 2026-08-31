@@ -1,14 +1,17 @@
 import React from "react";
 import { Calendar, ArrowRight } from "lucide-react";
-import speakerData from "../../data/beyond-the-bar.json";
+import { useSiteContent } from "../../src/lib/content-client";
 import { Drawer } from "../../components/ui/drawer";
 import { Carousel } from "../../components/ui/carousel";
 import { YearSelect } from "../../components/ui/year-select";
-import config from "../../data/site-config.json";
 
 export default function Page() {
   const [selectedSpeaker, setSelectedSpeaker] = React.useState<any>(null);
-  const [selectedYear, setSelectedYear] = React.useState(speakerData.cohorts[0].year);
+  const { content: speakerData } = useSiteContent<any>("beyond-the-bar.json");
+  const { content: config } = useSiteContent<any>("site-config.json");
+  const [selectedYear, setSelectedYear] = React.useState<string | null>(null);
+  React.useEffect(() => { if (speakerData && !selectedYear) setSelectedYear(speakerData.cohorts[0]?.year || ""); }, [speakerData, selectedYear]);
+  if (!speakerData || !config || !selectedYear) return null;
   const closeDrawer = () => setSelectedSpeaker(null);
 
   return (

@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ChevronDown, BookOpen, FileText, X } from "lucide-react";
-import officersData from "../../data/officers.json";
-import constitution from "../../data/constitution.json";
+import { useSiteContent } from "../../src/lib/content-client";
 import { Drawer } from "../../components/ui/drawer";
 import { YearSelect } from "../../components/ui/year-select";
 
@@ -22,9 +21,14 @@ interface Officer {
 
 export default function Page() {
   const [selectedOfficer, setSelectedOfficer] = useState<Officer | null>(null);
-  const [selectedYear, setSelectedYear] = useState(officersData[0].year);
+  const { content: officersData } = useSiteContent<any[]>("officers.json");
+  const { content: constitution } = useSiteContent<any>("constitution.json");
+  const [selectedYear, setSelectedYear] = useState<string | null>(null);
   const [activeArticle, setActiveArticle] = useState<number>(1);
   const closeDrawer = () => setSelectedOfficer(null);
+
+  useEffect(() => { if (officersData && !selectedYear) setSelectedYear(officersData[0]?.year || ""); }, [officersData, selectedYear]);
+  if (!officersData || !constitution || !selectedYear) return null;
 
   // Track scroll position for constitution TOC
   useEffect(() => {

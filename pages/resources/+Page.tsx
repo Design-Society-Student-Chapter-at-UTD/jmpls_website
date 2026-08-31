@@ -1,8 +1,10 @@
 import React from "react";
 import { FileText, ExternalLink, BookOpen } from "lucide-react";
-import resourcesData from "../../data/resources.json";
+import { useSiteContent } from "../../src/lib/content-client";
 
 export default function Page() {
+  const { content: resourcesData } = useSiteContent<any[]>("resources.json");
+  if (!resourcesData) return null;
   return (
     <div className="flex flex-col min-h-screen bg-white">
       {/* Hero Banner */}

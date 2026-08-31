@@ -1,8 +1,9 @@
 import React from "react";
-import config from "../../data/site-config.json";
+import { useSiteContent } from "../../src/lib/content-client";
 
 export default function Page() {
   const [copiedText, setCopiedText] = React.useState<string | null>(null);
+  const { content: config } = useSiteContent<any>("site-config.json");
 
   const copyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -10,6 +11,7 @@ export default function Page() {
     setTimeout(() => setCopiedText(null), 2000);
   };
 
+  if (!config) return null;
   const { organization, forms } = config;
 
   return (
