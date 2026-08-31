@@ -28,8 +28,6 @@ export default function Page() {
   const closeDrawer = () => setSelectedOfficer(null);
 
   useEffect(() => { if (officersData && !selectedYear) setSelectedYear(officersData[0]?.year || ""); }, [officersData, selectedYear]);
-  if (!officersData || !constitution || !selectedYear) return null;
-
   // Track scroll position for constitution TOC
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -47,6 +45,8 @@ export default function Page() {
     els.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
   }, []);
+
+  if (!officersData || !constitution || !selectedYear) return null;
 
   const scrollToArticle = (num: number) => {
     const el = document.querySelector(`[data-article="${num}"]`);
