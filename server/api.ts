@@ -8,10 +8,18 @@ import Stripe from "stripe";
 import crypto from "crypto";
 import fs from "fs";
 import path from "path";
+import { fileURLToPath } from "url";
 
 // ── Admin helpers ──────────────────────────────────────────────────────────
 
-const DATA_DIR = path.resolve(process.cwd(), "data");
+// Vercel's bundler places traced JSON files beside the serverless function,
+// while local development keeps them under the project-level data directory.
+// Resolve both layouts so a missing bundle file cannot silently remove admin access.
+const DATA_DIR = [
+  path.resolve(process.cwd(), "data"),
+  path.dirname(fileURLToPath(import.meta.url)),
+].find((directory) => fs.existsSync(path.join(directory, "admin-config.json")))
+  || path.resolve(process.cwd(), "data");
 
 function loadAdminConfig(): string[] {
   try {
