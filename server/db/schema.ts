@@ -96,3 +96,13 @@ export const orders = sqliteTable("orders", {
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
+
+// Site content is stored in Turso. The value preserves the existing document
+// shape as JSON text, but the database—not a deployed filesystem file—is the
+// sole runtime source of truth.
+export const siteContent = sqliteTable("site_content", {
+  key: text("key").primaryKey(),
+  content: text("content").notNull(),
+  createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+});

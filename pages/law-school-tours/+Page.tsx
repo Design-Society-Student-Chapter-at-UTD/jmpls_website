@@ -1,18 +1,21 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Calendar, ArrowRight, MapPin, ExternalLink, School } from "lucide-react";
-import tourData from "../../data/law-school-tours.json";
+import { useSiteContent } from "../../src/lib/content-client";
 import { Carousel } from "../../components/ui/carousel";
 import { YearSelect } from "../../components/ui/year-select";
 import { Drawer } from "../../components/ui/drawer";
-import config from "../../data/site-config.json";
 
 export default function Page() {
   const [selectedTour, setSelectedTour] = useState<any>(null);
-  const [selectedYear, setSelectedYear] = useState(tourData.tours[0].year);
+  const { content: tourData } = useSiteContent<any>("law-school-tours.json");
+  const { content: config } = useSiteContent<any>("site-config.json");
+  const [selectedYear, setSelectedYear] = useState<string | null>(null);
   
   const closeDrawer = () => setSelectedTour(null);
 
-  const currentCohort = tourData.tours.find(t => t.year === selectedYear);
+  useEffect(() => { if (tourData && !selectedYear) setSelectedYear(tourData.tours[0]?.year || ""); }, [tourData, selectedYear]);
+  if (!tourData || !config || !selectedYear) return null;
+  const currentCohort = tourData.tours.find((t: any) => t.year === selectedYear);
 
   return (
     <div className="pb-24 bg-gray-50 min-h-screen relative">

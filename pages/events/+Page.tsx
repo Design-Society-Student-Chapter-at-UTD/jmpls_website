@@ -1,12 +1,14 @@
 import React, { useState } from "react";
 import { FileText, ChevronRight, ChevronLeft, ArrowRight, Calendar, MapPin, ExternalLink } from "lucide-react";
-import eventHistory from "../../data/event-history.json";
+import { useSiteContent } from "../../src/lib/content-client";
 import { Drawer } from "../../components/ui/drawer";
 
 export default function Page() {
   const [selectedEvent, setSelectedEvent] = useState<any>(null);
+  const { content: eventHistory } = useSiteContent<any[]>("event-history.json");
   const closeDrawer = () => setSelectedEvent(null);
 
+  if (!eventHistory) return null;
   return (
     <div className="pb-24 bg-gray-50 min-h-screen">
       <section className="bg-maroon text-white py-24 px-8 text-center border-b-4 border-gold">

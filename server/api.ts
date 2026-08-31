@@ -2,37 +2,15 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { auth } from "./auth";
 import { db } from "./db";
-import { products, orders, donations, user } from "./db/schema";
+import { products, orders, donations, user, siteContent } from "./db/schema";
 import { desc, eq, count, asc } from "drizzle-orm";
 import Stripe from "stripe";
 import crypto from "crypto";
-import fs from "fs";
-import path from "path";
-import { fileURLToPath } from "url";
 
 // ── Admin helpers ──────────────────────────────────────────────────────────
 
-// Vercel's bundler places traced JSON files beside the serverless function,
-// while local development keeps them under the project-level data directory.
-// Resolve both layouts so a missing bundle file cannot silently remove admin access.
-const DATA_DIR = [
-  path.resolve(process.cwd(), "data"),
-  path.dirname(fileURLToPath(import.meta.url)),
-].find((directory) => fs.existsSync(path.join(directory, "admin-config.json")))
-  || path.resolve(process.cwd(), "data");
-
-function loadAdminConfig(): string[] {
-  try {
-    const raw = fs.readFileSync(path.join(DATA_DIR, "admin-config.json"), "utf-8");
-    const cfg = JSON.parse(raw);
-    return cfg.admins || [];
-  } catch {
-    return [];
-  }
-}
-
-function isAdminEmail(email: string): boolean {
-  return loadAdminConfig().includes(email);
+function isAdminUser(currentUser: any): boolean {
+  return typeof currentUser?.role === "string" && currentUser.role.split(",").includes("admin");
 }
 
 async function getSessionUser(c: any) {
@@ -57,33 +35,27 @@ app.use("/api/*", cors());
 
 app.on(["POST", "GET"], "/api/auth/**", (c) => auth.handler(c.req.raw));
 
+// Public site content is served from Turso. File names are retained as stable
+// content keys so existing page/editor contracts can migrate without changing
+// the stored document shapes.
+app.get("/api/content/:key", async (c) => {
+  const record = await db.select({ content: siteContent.content })
+    .from(siteContent).where(eq(siteContent.key, c.req.param("key"))).get();
+  if (!record) return c.json({ error: "Content not found" }, 404);
+  return c.json(JSON.parse(record.content));
+});
+
 // ── Product API routes ─────────────────────────────────────────────────
 
 app.get("/api/products", async (c) => {
-  try {
-    const filePath = path.join(DATA_DIR, "merchandise.json");
-    const raw = fs.readFileSync(filePath, "utf-8");
-    const all = JSON.parse(raw);
-    return c.json(all.map((p: any) => ({
-      ...p,
-      price: p.price, // already in dollars
-    })));
-  } catch {
-    return c.json([]);
-  }
+  const all = await db.select().from(products).where(eq(products.active, true)).orderBy(desc(products.createdAt)).all();
+  return c.json(all.map((product) => ({ ...product, price: product.price / 100 })));
 });
 
 app.get("/api/products/:id", async (c) => {
-  try {
-    const filePath = path.join(DATA_DIR, "merchandise.json");
-    const raw = fs.readFileSync(filePath, "utf-8");
-    const all = JSON.parse(raw);
-    const product = all.find((p: any) => p.id === c.req.param("id"));
-    if (!product) return c.json({ error: "Not found" }, 404);
-    return c.json(product);
-  } catch {
-    return c.json({ error: "Not found" }, 404);
-  }
+  const product = await db.select().from(products).where(eq(products.id, c.req.param("id"))).get();
+  if (!product || !product.active) return c.json({ error: "Not found" }, 404);
+  return c.json({ ...product, price: product.price / 100 });
 });
 
 // ── Stripe Checkout Session ────────────────────────────────────────────
@@ -282,7 +254,7 @@ app.get("/api/orders/:id", async (c) => {
 
 app.get("/api/dashboard/stats", async (c) => {
   const currentUser = await getSessionUser(c);
-  if (!currentUser || !isAdminEmail(currentUser.email)) {
+  if (!isAdminUser(currentUser)) {
     return c.json({ error: "Unauthorized" }, 403);
   }
   const totalUsers = await db.select({ count: count() }).from(user).get();
@@ -320,7 +292,7 @@ app.get("/api/dashboard/stats", async (c) => {
 
 app.get("/api/dashboard/orders", async (c) => {
   const currentUser = await getSessionUser(c);
-  if (!currentUser || !isAdminEmail(currentUser.email)) {
+  if (!isAdminUser(currentUser)) {
     return c.json({ error: "Unauthorized" }, 403);
   }
   const all = await db
@@ -342,7 +314,7 @@ app.get("/api/dashboard/orders", async (c) => {
 
 app.get("/api/admin/donations", async (c) => {
   const user = await getSessionUser(c);
-  if (!user || !isAdminEmail(user.email)) {
+  if (!isAdminUser(user)) {
     return c.json({ error: "Unauthorized" }, 403);
   }
   const all = await db
@@ -362,10 +334,9 @@ app.get("/api/admin/donations", async (c) => {
 
 app.get("/api/admin/users", async (c) => {
   const currentUser = await getSessionUser(c);
-  if (!currentUser || !isAdminEmail(currentUser.email)) {
+  if (!isAdminUser(currentUser)) {
     return c.json({ error: "Unauthorized" }, 403);
   }
-  const adminEmails = loadAdminConfig();
   const all = await db
     .select({
       id: user.id,
@@ -381,7 +352,7 @@ app.get("/api/admin/users", async (c) => {
   return c.json(
     all.map((u) => ({
       ...u,
-      isAdmin: adminEmails.includes(u.email),
+      isAdmin: isAdminUser(u),
     }))
   );
 });
@@ -391,7 +362,7 @@ app.get("/api/admin/users", async (c) => {
 app.get("/api/admin/verify", async (c) => {
   const currentUser = await getSessionUser(c);
   if (!currentUser) return c.json({ admin: false, error: "Not logged in" });
-  const admin = isAdminEmail(currentUser.email);
+  const admin = isAdminUser(currentUser);
   return c.json({ admin, email: currentUser.email });
 });
 
@@ -411,18 +382,16 @@ const ALLOWED_DATA_FILES = [
 
 app.get("/api/admin/data-files", async (c) => {
   const currentUser = await getSessionUser(c);
-  if (!currentUser || !isAdminEmail(currentUser.email)) {
+  if (!isAdminUser(currentUser)) {
     return c.json({ error: "Unauthorized" }, 403);
   }
   const files = ALLOWED_DATA_FILES.map((name) => {
-    const filePath = path.join(DATA_DIR, name);
-    const exists = fs.existsSync(filePath);
-    const stat = exists ? fs.statSync(filePath) : null;
+    const exists = true;
     return {
       name,
       exists,
-      size: stat?.size || 0,
-      lastModified: stat?.mtime?.toISOString() || null,
+      size: 0,
+      lastModified: null,
     };
   });
   return c.json({ files });
@@ -430,24 +399,23 @@ app.get("/api/admin/data-files", async (c) => {
 
 app.get("/api/admin/data/:fileName", async (c) => {
   const currentUser = await getSessionUser(c);
-  if (!currentUser || !isAdminEmail(currentUser.email)) {
+  if (!isAdminUser(currentUser)) {
     return c.json({ error: "Unauthorized" }, 403);
   }
   const fileName = c.req.param("fileName");
   if (!ALLOWED_DATA_FILES.includes(fileName)) {
     return c.json({ error: "File not allowed" }, 400);
   }
-  const filePath = path.join(DATA_DIR, fileName);
-  if (!fs.existsSync(filePath)) {
+  const record = await db.select().from(siteContent).where(eq(siteContent.key, fileName)).get();
+  if (!record) {
     return c.json({ error: "File not found" }, 404);
   }
-  const content = fs.readFileSync(filePath, "utf-8");
-  return c.json({ fileName, content });
+  return c.json({ fileName, content: record.content });
 });
 
 app.post("/api/admin/data/:fileName", async (c) => {
   const currentUser = await getSessionUser(c);
-  if (!currentUser || !isAdminEmail(currentUser.email)) {
+  if (!isAdminUser(currentUser)) {
     return c.json({ error: "Unauthorized" }, 403);
   }
   const fileName = c.req.param("fileName");
@@ -465,8 +433,8 @@ app.post("/api/admin/data/:fileName", async (c) => {
   } catch {
     return c.json({ error: "Invalid JSON" }, 400);
   }
-  const filePath = path.join(DATA_DIR, fileName);
-  fs.writeFileSync(filePath, content, "utf-8");
+  await db.insert(siteContent).values({ key: fileName, content, updatedAt: new Date() })
+    .onConflictDoUpdate({ target: siteContent.key, set: { content, updatedAt: new Date() } });
   console.log(`Admin ${currentUser.email} updated ${fileName}`);
   return c.json({ success: true, fileName });
 });
