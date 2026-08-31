@@ -9,6 +9,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   const [isTransitioning, setIsTransitioning] = useState(false);
 
@@ -20,6 +21,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           email: data.user.email,
           firstname: data.user.name?.split(" ")[0] || "Member",
         });
+        fetch("/api/admin/verify")
+          .then((response) => response.json())
+          .then((adminCheck) => setIsAdmin(adminCheck.admin === true))
+          .catch(() => setIsAdmin(false));
       }
     });
     
@@ -121,10 +126,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               ) : (
                 <div className="flex items-center gap-4">
                   <a
-                    href="/profile"
+                    href={isAdmin ? "/dashboard" : "/profile"}
                     className="text-xs font-bold uppercase tracking-widest text-maroon hover:text-gold transition-colors"
                   >
-                    Profile
+                    {isAdmin ? "Dashboard" : "Profile"}
                   </a>
                   <span 
                     onDoubleClick={handleLogout}
@@ -230,11 +235,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     </button>
                   </div>
                   <a 
-                    href="/profile"
+                    href={isAdmin ? "/dashboard" : "/profile"}
                     onClick={() => setIsMenuOpen(false)}
                     className="flex items-center justify-center w-full py-3 bg-maroon/5 border border-maroon/20 text-maroon font-bold tracking-wider uppercase text-xs rounded-sm hover:bg-maroon hover:text-white transition-all"
                   >
-                    Profile
+                    {isAdmin ? "Dashboard" : "Profile"}
                   </a>
                 </div>
             )}
