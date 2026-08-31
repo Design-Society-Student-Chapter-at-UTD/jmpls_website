@@ -9,8 +9,11 @@ import crypto from "crypto";
 
 // ── Admin helpers ──────────────────────────────────────────────────────────
 
-function isAdminUser(currentUser: any): boolean {
-  return typeof currentUser?.role === "string" && currentUser.role.split(",").includes("admin");
+async function isAdminUser(currentUser: any): Promise<boolean> {
+  if (!currentUser?.id) return false;
+  const record = await db.select({ role: user.role }).from(user)
+    .where(eq(user.id, currentUser.id)).get();
+  return typeof record?.role === "string" && record.role.split(",").includes("admin");
 }
 
 async function getSessionUser(c: any) {
@@ -295,7 +298,7 @@ app.get("/api/orders/:id", async (c) => {
 
 app.get("/api/dashboard/stats", async (c) => {
   const currentUser = await getSessionUser(c);
-  if (!isAdminUser(currentUser)) {
+  if (!await isAdminUser(currentUser)) {
     return c.json({ error: "Unauthorized" }, 403);
   }
   const totalUsers = await db.select({ count: count() }).from(user).get();
@@ -334,7 +337,7 @@ app.get("/api/dashboard/stats", async (c) => {
 
 app.get("/api/dashboard/orders", async (c) => {
   const currentUser = await getSessionUser(c);
-  if (!isAdminUser(currentUser)) {
+  if (!await isAdminUser(currentUser)) {
     return c.json({ error: "Unauthorized" }, 403);
   }
   const all = await db
@@ -357,7 +360,7 @@ app.get("/api/dashboard/orders", async (c) => {
 
 app.get("/api/admin/donations", async (c) => {
   const user = await getSessionUser(c);
-  if (!isAdminUser(user)) {
+  if (!await isAdminUser(user)) {
     return c.json({ error: "Unauthorized" }, 403);
   }
   const all = await db
@@ -377,7 +380,7 @@ app.get("/api/admin/donations", async (c) => {
 
 app.get("/api/admin/users", async (c) => {
   const currentUser = await getSessionUser(c);
-  if (!isAdminUser(currentUser)) {
+  if (!await isAdminUser(currentUser)) {
     return c.json({ error: "Unauthorized" }, 403);
   }
   const all = await db
@@ -395,7 +398,7 @@ app.get("/api/admin/users", async (c) => {
   return c.json(
     all.map((u) => ({
       ...u,
-      isAdmin: isAdminUser(u),
+      isAdmin: typeof u.role === "string" && u.role.split(",").includes("admin"),
     }))
   );
 });
@@ -405,8 +408,8 @@ app.get("/api/admin/users", async (c) => {
 app.get("/api/admin/verify", async (c) => {
   const currentUser = await getSessionUser(c);
   if (!currentUser) return c.json({ admin: false, error: "Not logged in" });
-  const admin = isAdminUser(currentUser);
-  return c.json({ admin, email: currentUser.email });
+  const admin = await isAdminUser(currentUser);
+  return c.json({ admin, email: currentUser.email, role: currentUser.role });
 });
 
 const ALLOWED_DATA_FILES = [
@@ -425,7 +428,7 @@ const ALLOWED_DATA_FILES = [
 
 app.get("/api/admin/data-files", async (c) => {
   const currentUser = await getSessionUser(c);
-  if (!isAdminUser(currentUser)) {
+  if (!await isAdminUser(currentUser)) {
     return c.json({ error: "Unauthorized" }, 403);
   }
   const files = ALLOWED_DATA_FILES.map((name) => {
@@ -442,7 +445,7 @@ app.get("/api/admin/data-files", async (c) => {
 
 app.get("/api/admin/data/:fileName", async (c) => {
   const currentUser = await getSessionUser(c);
-  if (!isAdminUser(currentUser)) {
+  if (!await isAdminUser(currentUser)) {
     return c.json({ error: "Unauthorized" }, 403);
   }
   const fileName = c.req.param("fileName");
@@ -458,7 +461,7 @@ app.get("/api/admin/data/:fileName", async (c) => {
 
 app.post("/api/admin/data/:fileName", async (c) => {
   const currentUser = await getSessionUser(c);
-  if (!isAdminUser(currentUser)) {
+  if (!await isAdminUser(currentUser)) {
     return c.json({ error: "Unauthorized" }, 403);
   }
   const fileName = c.req.param("fileName");
