@@ -121,10 +121,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               ) : (
                 <div className="flex items-center gap-4">
                   <a
-                    href="/dashboard"
+                    href="/profile"
                     className="text-xs font-bold uppercase tracking-widest text-maroon hover:text-gold transition-colors"
                   >
-                    Dashboard
+                    Profile
                   </a>
                   <span 
                     onDoubleClick={handleLogout}
@@ -230,11 +230,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                     </button>
                   </div>
                   <a 
-                    href="/dashboard"
+                    href="/profile"
                     onClick={() => setIsMenuOpen(false)}
                     className="flex items-center justify-center w-full py-3 bg-maroon/5 border border-maroon/20 text-maroon font-bold tracking-wider uppercase text-xs rounded-sm hover:bg-maroon hover:text-white transition-all"
                   >
-                    Dashboard
+                    Profile
                   </a>
                 </div>
             )}

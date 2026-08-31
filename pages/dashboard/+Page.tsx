@@ -35,6 +35,7 @@ interface AppUser {
   role: string | null;
   image: string | null;
   createdAt: string;
+  isAdmin?: boolean;
 }
 
 interface Stats {
@@ -48,6 +49,7 @@ interface Stats {
 export default function Page() {
   const [session, setSession] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [adminCheckDone, setAdminCheckDone] = useState(false);
   const [stats, setStats] = useState<Stats | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"overview" | "money" | "events" | "members" | "content">("overview");
@@ -64,6 +66,24 @@ export default function Page() {
 
   useEffect(() => {
     if (!session) return;
+    fetch("/api/admin/verify")
+      .then((r) => r.json())
+      .then((data) => {
+        if (!data.admin) {
+          window.location.href = "/profile";
+          return;
+        }
+        setIsAdmin(true);
+        setAdminCheckDone(true);
+      })
+      .catch(() => {
+        setError("Failed to verify access");
+        setLoading(false);
+      });
+  }, [session]);
+
+  useEffect(() => {
+    if (!adminCheckDone) return;
     fetch("/api/dashboard/stats")
       .then((r) => r.json())
       .then((data) => {
@@ -74,15 +94,7 @@ export default function Page() {
         setError("Failed to load dashboard data");
         setLoading(false);
       });
-  }, [session]);
-
-  useEffect(() => {
-    if (!session) return;
-    fetch("/api/admin/verify")
-      .then((r) => r.json())
-      .then((data) => setIsAdmin(data.admin))
-      .catch(() => {});
-  }, [session]);
+  }, [adminCheckDone]);
 
   if (loading) {
     return (
@@ -1152,7 +1164,13 @@ function MembersTab() {
                   <tr key={u.id} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">
                     <td className="px-6 py-4"><span className="font-medium text-gray-900">{u.name}</span></td>
                     <td className="px-6 py-4 text-xs text-gray-500">{u.email}</td>
-                    <td className="px-6 py-4"><span className="text-xs capitalize text-gray-600">{u.role || "member"}</span></td>
+                    <td className="px-6 py-4">
+                      {u.isAdmin ? (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-maroon/10 text-maroon text-[0.55rem] font-bold uppercase tracking-widest rounded-sm">Admin</span>
+                      ) : (
+                        <span className="text-xs capitalize text-gray-600">{u.role || "member"}</span>
+                      )}
+                    </td>
                     <td className="px-6 py-4 text-xs text-gray-500 whitespace-nowrap">{new Date(u.createdAt).toLocaleDateString()}</td>
                   </tr>
                 ))}

@@ -209,3 +209,104 @@ To modify the schema: edit `server/db/schema.ts`, then run `bun run db:push`.
 - **Donations**: `POST /api/create-donation-session` → Stripe Checkout → webhook updates donation
 
 The webhook endpoint is `POST /api/stripe-webhook`.
+
+---
+
+---
+
+## Deploying to Vercel
+
+### Overview
+
+The project is already set up for Vercel deployment. Here's what's configured:
+
+| File | Purpose |
+|------|---------|
+| `api/index.ts` | Vercel serverless function — exports the Hono API `fetch` handler |
+| `server/api.ts` | API-only Hono app (all API routes, no SSR middleware) |
+| `server/index.ts` | Production server — imports `server/api.ts`, adds Vike SSR + static file serving for non-Vercel deployments |
+| `vite.config.ts` | Includes `vite-plugin-vercel` adapter (auto-detects `@vite-plugin-vercel/vike`) |
+| `vercel.json` | Build and deployment configuration |
+
+**Key architecture for Vercel:**
+- **Vike SSR pages** → built into serverless functions by `vite-plugin-vercel`
+- **API routes** (`/api/*`) → handled by the `api/index.ts` serverless function
+- **Database** → Local SQLite won't work on Vercel (no persistent filesystem). You must use [Turso](https://turso.tech) or another hosted database.
+
+### Prerequisites
+
+1. A [Vercel](https://vercel.com) account
+2. A [Turso](https://turso.tech) account for the hosted database
+3. Environment variables ready (see [Environment Variables](#environment-variables))
+
+### Step 1: Migrate Database to Turso
+
+Vercel serverless functions don't have a persistent filesystem, so local SQLite won't work.
+
+1. Create a free Turso account:
+   ```bash
+   # Install Turso CLI
+   brew install tursodatabase/tap/turso
+   # or: curl -sSfL https://get.tur.so/install.sh | bash
+
+   # Login and create a database
+   turso auth login
+   turso db create jmpls
+   turso db show jmpls --url  # copy this URL
+   ```
+
+2. Push the schema:
+   ```bash
+   DB_URL="libsql://your-db-url.turso.io" bun run db:push
+   ```
+
+> **Note**: Any data in your local `jmpls.db` won't transfer automatically. Export it before switching.
+
+### Step 2: Set Environment Variables on Vercel
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `BETTER_AUTH_SECRET` | Yes | Auth secret (min 32 chars) |
+| `BETTER_AUTH_URL` | Yes | Your Vercel domain (`https://your-project.vercel.app`) |
+| `DB_URL` | Yes | Turso database URL |
+| `STRIPE_SECRET_KEY` | For payments | Stripe secret key |
+| `STRIPE_WEBHOOK_SECRET` | For webhooks | Stripe webhook signing secret |
+| `MICROSOFT_CLIENT_ID` | For Microsoft login | OAuth client ID |
+| `MICROSOFT_CLIENT_SECRET` | For Microsoft login | OAuth client secret |
+| `MICROSOFT_TENANT_ID` | For Microsoft login | OAuth tenant ID |
+
+### Step 3: Deploy
+
+**Via CLI (no web UI needed):**
+```bash
+cd app
+bun x vercel --prod
+```
+The CLI will prompt you to link to an existing project or create a new one. The `vercel.json` in `app/` handles all build settings.
+
+**Via Git (GitHub integration):**
+1. Push the repo to GitHub
+2. Go to [vercel.com/new](https://vercel.com/new)
+3. Import your repo
+4. Set **Root Directory** to `app` (where `package.json` lives)
+5. Add environment variables from Step 2
+6. Deploy
+
+> The `vercel.json` handles all build and output settings — no need to configure through the web UI beyond root directory and env vars.
+
+### Notes
+
+- **`vite-plugin-vercel`** automatically bundles Vike SSR pages into serverless functions. The `@vite-plugin-vercel/vike` integration is auto-detected.
+- **`api/index.ts`** is auto-detected by Vercel as a serverless function serving all `/api/*` routes.
+- **Cold starts**: The first request may be slow. This is normal for serverless.
+- **Local development** still runs via `bun run dev` — the api-server Vite plugin starts a Hono server on port 3001 as before.
+
+### Alternative: Single-Server Deployment
+
+If you prefer a VPS (DigitalOcean, Railway, Fly.io, etc.) instead of Vercel, the existing `server/index.ts` still works for traditional deployments:
+
+```bash
+NODE_ENV=production BETTER_AUTH_SECRET=... bun run server/index.ts
+```
+
+This approach works with local SQLite and doesn't need `vite-plugin-vercel` or the `api/` directory.
