@@ -68,15 +68,16 @@ function Carousel() {
   const { content: images } = useSiteContent<any[]>("home-carousel.json");
   const [currentIndex, setCurrentIndex] = useState(0);
 
-  if (!images?.length) return null;
-
   // Auto scroll
   useEffect(() => {
+    if (!images?.length) return;
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % images.length);
     }, 5500);
     return () => clearInterval(timer);
-  }, [images.length]);
+  }, [images?.length]);
+
+  if (!images?.length) return null;
 
   return (
     <div className="relative w-full h-[550px] md:h-[650px] rounded-sm overflow-hidden shadow-md group">

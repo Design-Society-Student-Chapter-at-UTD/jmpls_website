@@ -7,17 +7,17 @@ export default function Page() {
   const [filter, setFilter] = useState("All");
   const { content: galleryData } = useSiteContent<any[]>("gallery.json");
 
-  if (!galleryData) return null;
-
   const categories = useMemo(() => {
-    return ["All", ...new Set(galleryData.map((p) => p.category))];
-  }, []);
+    return ["All", ...(galleryData || []).map((p) => p.category).filter((value, index, values) => values.indexOf(value) === index)];
+  }, [galleryData]);
 
   const filtered = useMemo(() => {
     return filter === "All"
-      ? galleryData
-      : galleryData.filter((p) => p.category === filter);
-  }, [filter]);
+      ? (galleryData || [])
+      : (galleryData || []).filter((p) => p.category === filter);
+  }, [filter, galleryData]);
+
+  if (!galleryData) return null;
 
   const currentIndex = selectedImage
     ? filtered.findIndex((p) => p.id === selectedImage.id)
