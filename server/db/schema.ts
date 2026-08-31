@@ -1,4 +1,4 @@
-import { sqliteTable, text, integer } from "drizzle-orm/sqlite-core";
+import { sqliteTable, text, integer, uniqueIndex } from "drizzle-orm/sqlite-core";
 
 // ── Better Auth tables ──────────────────────────────────────────────────
 
@@ -96,6 +96,22 @@ export const orders = sqliteTable("orders", {
   createdAt: integer("created_at", { mode: "timestamp" }).notNull(),
   updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
 });
+
+export const orderItems = sqliteTable("order_items", {
+  id: text("id").primaryKey(),
+  orderId: text("order_id").notNull().references(() => orders.id, { onDelete: "cascade" }),
+  productId: text("product_id").notNull(),
+  name: text("name").notNull(),
+  price: integer("price").notNull(),
+  quantity: integer("quantity").notNull(),
+});
+
+export const cartItems = sqliteTable("cart_items", {
+  userId: text("user_id").notNull().references(() => user.id, { onDelete: "cascade" }),
+  productId: text("product_id").notNull().references(() => products.id, { onDelete: "cascade" }),
+  quantity: integer("quantity").notNull(),
+  updatedAt: integer("updated_at", { mode: "timestamp" }).notNull(),
+}, (table) => [uniqueIndex("cart_items_user_product_idx").on(table.userId, table.productId)]);
 
 // Site content is stored in Turso. The value preserves the existing document
 // shape as JSON text, but the database—not a deployed filesystem file—is the

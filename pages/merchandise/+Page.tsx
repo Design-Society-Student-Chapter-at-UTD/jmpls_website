@@ -1,27 +1,14 @@
 import React, { useState, useMemo, useEffect } from "react";
 import { ShoppingBag, Search, X, Plus, Minus, Heart, AlertCircle, Check } from "lucide-react";
+import { authClient } from "../../src/lib/auth-client";
 
 const PRESET_DONATIONS = [10, 25, 50, 100];
-
-const CART_STORAGE_KEY = "jmpls_cart";
-
-function loadCart(): any[] {
-  try {
-    const stored = localStorage.getItem(CART_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveCart(cart: any[]) {
-  localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
-}
 
 export default function Page() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [cart, setCart] = useState<any[]>(loadCart);
+  const [cart, setCart] = useState<any[]>([]);
+  const [session, setSession] = useState<any>(null);
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [productsData, setProductsData] = useState<any[]>([]);
 
@@ -43,10 +30,12 @@ export default function Page() {
       .catch(console.error);
   }, []);
   
-  // Persist cart to localStorage on every change
   useEffect(() => {
-    saveCart(cart);
-  }, [cart]);
+    authClient.getSession().then(({ data }) => {
+      setSession(data);
+      if (data?.user) fetch("/api/cart").then((res) => res.ok ? res.json() : []).then(setCart).catch(() => setCart([]));
+    });
+  }, []);
 
   const categories = useMemo(() => {
     return ["All", ...new Set(productsData.map((p: any) => p.category))];
@@ -61,9 +50,12 @@ export default function Page() {
     });
   }, [searchTerm, selectedCategory]);
 
-  const addToCart = (product: any) => {
+  const addToCart = async (product: any) => {
+    if (!session?.user) { window.location.href = "/login"; return; }
+    const existing = cart.find(item => item.id === product.id);
+    const quantity = existing ? existing.quantity + 1 : 1;
+    await fetch(`/api/cart/${product.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ quantity }) });
     setCart(prev => {
-      const existing = prev.find(item => item.id === product.id);
       if (existing) {
         return prev.map(item => item.id === product.id ? { ...item, quantity: item.quantity + 1 } : item);
       }
@@ -72,14 +64,18 @@ export default function Page() {
     setIsCartOpen(true);
   };
 
-  const removeFromCart = (productId: string) => {
+  const removeFromCart = async (productId: string) => {
+    await fetch(`/api/cart/${productId}`, { method: "DELETE" });
     setCart(prev => prev.filter(item => item.id !== productId));
   };
 
-  const updateQuantity = (productId: string, delta: number) => {
+  const updateQuantity = async (productId: string, delta: number) => {
+    const item = cart.find((entry) => entry.id === productId);
+    if (!item) return;
+    const newQty = Math.max(1, item.quantity + delta);
+    await fetch(`/api/cart/${productId}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ quantity: newQty }) });
     setCart(prev => prev.map(item => {
       if (item.id === productId) {
-        const newQty = Math.max(1, item.quantity + delta);
         return { ...item, quantity: newQty };
       }
       return item;
@@ -129,6 +125,7 @@ export default function Page() {
   };
 
   const handleCheckout = async () => {
+    if (!session?.user) { window.location.href = "/login"; return; }
     try {
       const res = await fetch("/api/create-checkout-session", {
         method: "POST",
