@@ -3,6 +3,22 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { db } from "./db";
 import * as schema from "./db/schema";
 
+function asOrigin(value: string | undefined): string | null {
+  if (!value) return null;
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  return trimmed.startsWith("http://") || trimmed.startsWith("https://")
+    ? trimmed.replace(/\/$/, "")
+    : `https://${trimmed}`;
+}
+
+const configuredOrigins = [
+  asOrigin(process.env.BETTER_AUTH_URL),
+  asOrigin(process.env.VERCEL_URL),
+  asOrigin(process.env.VERCEL_PROJECT_PRODUCTION_URL),
+  ...(process.env.TRUSTED_ORIGINS || "").split(",").map(asOrigin),
+].filter((origin): origin is string => Boolean(origin));
+
 export const auth = betterAuth({
   database: drizzleAdapter(db, {
     provider: "sqlite",
@@ -31,6 +47,6 @@ export const auth = betterAuth({
     "http://localhost:3000",
     "http://localhost:3001",
     "http://localhost:3002",
-    ...(process.env.TRUSTED_ORIGINS ? process.env.TRUSTED_ORIGINS.split(",") : []),
+    ...configuredOrigins,
   ],
 });
