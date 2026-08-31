@@ -2,8 +2,8 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { auth } from "./auth";
 import { db } from "./db";
-import { products, orders, donations, user, siteContent } from "./db/schema";
-import { desc, eq, count, asc } from "drizzle-orm";
+import { products, orders, orderItems, cartItems, donations, user, siteContent } from "./db/schema";
+import { desc, eq, count, asc, inArray } from "drizzle-orm";
 import Stripe from "stripe";
 import crypto from "crypto";
 
@@ -16,6 +16,20 @@ function isAdminUser(currentUser: any): boolean {
 async function getSessionUser(c: any) {
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
   return session?.user || null;
+}
+
+async function requireSessionUser(c: any) {
+  const currentUser = await getSessionUser(c);
+  if (!currentUser) return null;
+  return currentUser;
+}
+
+async function getOrderItems(orderIds: string[]) {
+  const rows = orderIds.length ? await db.select().from(orderItems).where(inArray(orderItems.orderId, orderIds)).all() : [];
+  return rows.reduce((grouped, item) => {
+    (grouped[item.orderId] ||= []).push({ id: item.productId, name: item.name, price: item.price / 100, quantity: item.quantity });
+    return grouped;
+  }, {} as Record<string, any[]>);
 }
 
 const stripe = process.env.STRIPE_SECRET_KEY
@@ -58,6 +72,35 @@ app.get("/api/products/:id", async (c) => {
   return c.json({ ...product, price: product.price / 100 });
 });
 
+app.get("/api/cart", async (c) => {
+  const currentUser = await requireSessionUser(c);
+  if (!currentUser) return c.json({ error: "Sign in required" }, 401);
+  const rows = await db.select({ product: products, quantity: cartItems.quantity })
+    .from(cartItems).innerJoin(products, eq(products.id, cartItems.productId))
+    .where(eq(cartItems.userId, currentUser.id)).all();
+  return c.json(rows.map(({ product, quantity }) => ({ ...product, price: product.price / 100, quantity })));
+});
+
+app.put("/api/cart/:productId", async (c) => {
+  const currentUser = await requireSessionUser(c);
+  if (!currentUser) return c.json({ error: "Sign in required" }, 401);
+  const productId = c.req.param("productId");
+  const { quantity } = await c.req.json().catch(() => ({}));
+  if (!Number.isInteger(quantity) || quantity < 1 || quantity > 99) return c.json({ error: "Invalid quantity" }, 400);
+  const product = await db.select({ id: products.id }).from(products).where(eq(products.id, productId)).get();
+  if (!product) return c.json({ error: "Product not found" }, 404);
+  await db.insert(cartItems).values({ userId: currentUser.id, productId, quantity, updatedAt: new Date() })
+    .onConflictDoUpdate({ target: [cartItems.userId, cartItems.productId], set: { quantity, updatedAt: new Date() } });
+  return c.json({ success: true });
+});
+
+app.delete("/api/cart/:productId", async (c) => {
+  const currentUser = await requireSessionUser(c);
+  if (!currentUser) return c.json({ error: "Sign in required" }, 401);
+  await db.delete(cartItems).where(and(eq(cartItems.userId, currentUser.id), eq(cartItems.productId, c.req.param("productId"))));
+  return c.json({ success: true });
+});
+
 // ── Stripe Checkout Session ────────────────────────────────────────────
 
 app.post("/api/create-checkout-session", async (c) => {
@@ -65,45 +108,42 @@ app.post("/api/create-checkout-session", async (c) => {
     return c.json({ error: "Stripe not configured" }, 500);
   }
 
-  const body = await c.req.json();
-  const { items, successUrl, cancelUrl } = body;
-
-  if (!items || items.length === 0) {
-    return c.json({ error: "Cart is empty" }, 400);
-  }
+  const currentUser = await requireSessionUser(c);
+  if (!currentUser) return c.json({ error: "Sign in required" }, 401);
+  const body = await c.req.json().catch(() => ({}));
+  const { successUrl, cancelUrl } = body;
+  const cart = await db.select({ product: products, quantity: cartItems.quantity })
+    .from(cartItems).innerJoin(products, eq(products.id, cartItems.productId))
+    .where(eq(cartItems.userId, currentUser.id)).all();
+  if (cart.length === 0) return c.json({ error: "Cart is empty" }, 400);
 
   try {
-    const line_items = items.map((item: any) => ({
+    const line_items = cart.map(({ product, quantity }) => ({
       price_data: {
         currency: "usd",
-        product_data: {
-          name: item.name,
-          description: item.description,
-        },
-        unit_amount: Math.round(item.price * 100), // dollars to cents
+        product_data: { name: product.name, description: product.description },
+        unit_amount: product.price,
       },
-      quantity: item.quantity,
+      quantity,
     }));
 
     // Generate a local order ID to track this purchase
     const orderId = crypto.randomUUID();
-    const orderItems = JSON.stringify(items.map((i: any) => ({
-      id: i.id,
-      name: i.name,
-      price: i.price,
-      quantity: i.quantity,
-    })));
-
     // Store pending order in DB
     await db.insert(orders).values({
       id: orderId,
-      userId: "guest", // will be updated if user is logged in
+      userId: currentUser.id,
       status: "pending",
-      total: Math.round(items.reduce((s: number, i: any) => s + i.price * i.quantity, 0) * 100),
-      items: orderItems,
+      total: cart.reduce((sum, { product, quantity }) => sum + product.price * quantity, 0),
+      items: "[]", // legacy compatibility; line items are stored relationally below
       createdAt: new Date(),
       updatedAt: new Date(),
     });
+    await db.insert(orderItems).values(cart.map(({ product, quantity }) => ({
+      id: crypto.randomUUID(), orderId, productId: product.id, name: product.name,
+      price: product.price, quantity,
+    })));
+    await db.delete(cartItems).where(eq(cartItems.userId, currentUser.id));
 
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
@@ -243,9 +283,10 @@ app.get("/api/orders/:id", async (c) => {
   const id = c.req.param("id");
   const order = await db.select().from(orders).where(eq(orders.id, id)).get();
   if (!order) return c.json({ error: "Order not found" }, 404);
+  const items = await getOrderItems([order.id]);
   return c.json({
     ...order,
-    items: JSON.parse(order.items),
+    items: items[order.id] || [],
     total: order.total / 100,
   });
 });
@@ -275,9 +316,10 @@ app.get("/api/dashboard/stats", async (c) => {
     return acc;
   }, {} as Record<string, number>);
 
+  const groupedItems = await getOrderItems(ordersList.map((o) => o.id));
   const recentOrders = ordersList.slice(0, 10).map((o) => ({
     ...o,
-    items: JSON.parse(o.items),
+    items: groupedItems[o.id] || [],
     total: o.total / 100,
   }));
 
@@ -301,10 +343,11 @@ app.get("/api/dashboard/orders", async (c) => {
     .orderBy(desc(orders.createdAt))
     .all();
 
+  const groupedItems = await getOrderItems(all.map((o) => o.id));
   return c.json(
     all.map((o) => ({
       ...o,
-      items: JSON.parse(o.items),
+      items: groupedItems[o.id] || [],
       total: o.total / 100,
     }))
   );

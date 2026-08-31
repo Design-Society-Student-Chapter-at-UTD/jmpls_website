@@ -1,7 +1,8 @@
 import fs from "fs";
 import path from "path";
+import crypto from "crypto";
 import { db } from "./index";
-import { products, siteContent, user } from "./schema";
+import { products, siteContent, user, orders, orderItems } from "./schema";
 import { eq } from "drizzle-orm";
 
 const dataDir = path.resolve(process.cwd(), "data");
@@ -32,6 +33,20 @@ async function migrate() {
       quantity: item.quantity, image: item.image, category: item.category,
       details: item.details, active: true,
     } });
+  }
+
+  const legacyOrders = await db.select().from(orders).all();
+  for (const order of legacyOrders) {
+    const items = JSON.parse(order.items || "[]");
+    for (const item of items) {
+      const existing = await db.select({ id: orderItems.id }).from(orderItems)
+        .where(eq(orderItems.orderId, order.id)).get();
+      if (existing) break;
+      await db.insert(orderItems).values({
+        id: crypto.randomUUID(), orderId: order.id, productId: item.id,
+        name: item.name, price: Math.round(item.price * 100), quantity: item.quantity,
+      });
+    }
   }
 
   const config = JSON.parse(fs.readFileSync(path.join(dataDir, "admin-config.json"), "utf8"));
